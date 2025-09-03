@@ -1,0 +1,9 @@
+[submodule "Modules/BrainRBMjulia"]
+	path = Modules/BrainRBMjulia
+	url = git@github.com:EmeEmu/BrainRBMjulia.git
+[submodule "Modules/BrainViewer"]
+	path = Modules/BrainViewer
+	url = git@github.com:LJPZebra/BrainViewer.git
+[submodule "Modules/BiTrainedRBMs.jl"]
+	path = Modules/BiTrainedRBMs.jl
+	url = git@github.com:BiRBMs2024/BiTrainedRBMs.jl.git
