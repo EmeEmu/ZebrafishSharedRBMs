@@ -105,7 +105,7 @@ md"""
 
 # ╔═╡ e2fa00ea-0859-4f8e-a911-cc7736fa723b
 for fish in fish_list
-	dataset = load_data(LOAD.load_data("WBSC", fish))
+	dataset = load_data(LOAD.load_dataWBSC(fish))
 	println(dataset.name)
 	println("\tspikes : $(size(dataset.spikes))")
 	println("\tcoords : $(size(dataset.coords))")
@@ -123,7 +123,7 @@ md"""
 fish = fish_list[1]
 
 # ╔═╡ 7ab97bb6-27dc-496c-9008-9a9c614f6799
-dataset = load_data(LOAD.load_data("WBSC", fish))
+dataset = load_data(LOAD.load_dataWBSC(fish))
 
 # ╔═╡ fa012b40-109c-4348-8806-3db6caa71e0f
 function corr_order(x)

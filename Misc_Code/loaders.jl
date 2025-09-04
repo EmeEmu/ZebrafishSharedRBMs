@@ -14,15 +14,36 @@ using DataDeps: @datadep_str
 #   return path[1]
 # end
 
-function load_datas(subdir::String, name::String)
-  dir = @datadep_str("Data/" * subdir)
-  paths = glob("*$name*h5", dir)
+function load_dataWBSCs(name::String)
+  dir = @datadep_str("Data_WBSC/WBSC")
+  paths = glob("DATA_*$name*h5", dir)
   return paths
 end
+function load_dataWBSC(name::String)
+  path = load_dataWBSCs(name)
+  @assert length(path) == 1 "multiple datas `$name` were found in\n$path"
+  return path[1]
+end
 
-function load_data(subdir::String, name::String)
-  path = load_datas(subdir, name)
-  @assert length(path) == 1 "multiple datas `$name` were found in $subdir :\n$path"
+function load_dataVOXs(name::String, vsize::Float64)
+  dir = @datadep_str("Data_Vox/Voxelized")
+  paths = glob("VOX$(vsize)*$name*h5", dir)
+  return paths
+end
+function load_dataVOX(name::String, vsize::Float64)
+  path = load_dataVOXs(name, vsize::Float64)
+  @assert length(path) == 1 "multiple datas `$name` were found in \n$path"
+  return path[1]
+end
+
+function load_voxgrids(vsize::Float64)
+  dir = @datadep_str("Data_Vox/Voxelgrids")
+  paths = glob("VOXgrid*vs$(vsize)*h5", dir)
+  return paths
+end
+function load_voxgrid(vsize::Float64)
+  path = load_voxgrids(vsize::Float64)
+  @assert length(path) == 1 "multiple grids `$vsize` were found in \n$path"
   return path[1]
 end
 
@@ -30,6 +51,6 @@ end
 
 base_path = joinpath(dirname(Base.current_project()), "DataAndModels")
 @assert isdir(base_path)
-DATA = joinpath(base_path, "Data")
-DATA_WBSC = joinpath(DATA, "WBSC")
-DATA_VOX = joinpath(DATA, "Voxelized")
+DATA_WBSC = joinpath(base_path, "Data_WBSC", "WBSC")
+DATA_VOX = joinpath(base_path, "Data_Vox", "Voxelized")
+DATA_VOXGRID = joinpath(base_path, "Data_Vox", "Voxelgrids")
