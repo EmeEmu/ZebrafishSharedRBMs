@@ -34,5 +34,21 @@ register(DataDep(
   post_fetch_method=unpack
 ))
 
+register(DataDep(
+  "RBMs_Vox",
+  "Whole-brain voxelized RBMs hosted on Zenodo.",
+  [
+    "http://134.157.132.30:8000/RBMs_Vox/vRBMr_multivoxelized_6fish_20.0vox_M40_l2l10.1.h5",
+    "http://134.157.132.30:8000/RBMs_Vox/CrossValidation.zip",
+    "http://134.157.132.30:8000/RBMs_Vox/Repeats.zip",
+  ],
+  [
+    (md5, "5d21dd6cad889b139e02fcef490b86e3"),
+    (md5, "05a155da8a122537f35c622ff9dc2ef3"),
+    (md5, "643cab094e17564f28b0acf09b2ae73b"),
+  ];
+  post_fetch_method=unpack
+))
+
 @info "The data will be downloaded automatically when needed to: $(ENV["DATADEPS_LOAD_PATH"])"
 

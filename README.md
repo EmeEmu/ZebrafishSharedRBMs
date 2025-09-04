@@ -112,6 +112,20 @@ Constuction of Whole-brain single-cell datasets is done with the notebook `Analy
 
 Constuction of Whole-brain voxelized datasets is done with the notebook `Analysis/Dataset_builder.jl`. This creates `VOXgrid.h5` files stored in `DataAndModels/Data_VOX/Voxelgrids/`, and `VOXsize_FishName.h5` files stored in `DataAndModels/Data_VOX/Voxelized/`.
 
+### 2. Training the RBMs
+
+All RBMs are already precomputed, hosted on Zenodo [here](example.com), and available through the `DataDeps` prodedure described above.
+
+The rest of this section describes how to recompute them. Bare in mind that RBMs are stochastic, therefore training new models will result in different models than those used in the article.
+
+#### 2.1. Voxelized RBMs
+
+We provide three notebooks to train and validate voxelized RBMs :
+
+- `Analysis/VoxelizedSingleFishTraining.jl` : train an RBM from a single fish. The fish and training parameters can be selected interactively. Two methods are provided to train a single or repeated trainings.
+- `Analysis/VoxelizedMultiFishTraining.jl` : train an RBM from multiple fish. The training parameters can be selected interactively. Two methods are provided to train a single or repeated trainings.
+- `Analysis/Voxelized_CrossValidation.jl` : cross validate training hyperparameters for a single-fish training. The fish can be selected interactively.
+
 
 
 ---
