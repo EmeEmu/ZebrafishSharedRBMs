@@ -102,14 +102,15 @@ The present repository contains all the code and data used to produce the analys
 
 All datasets are already precomputed, hosted on Zenodo [here](example.com), and available through the `DataDeps` prodedure described above.
 
-The rest of this section describes how to recompute them. 
+The rest of this section describes how to recompute them, from raw data (available from the authors on request). 
 
 #### 1.1. Whole-brain single-neuron datasets
 
-Constuction of Whole-brain single-cell datasets is done with the notebook `Analysis/Dataset_builder.jl`, from raw data (available from the authors on request).
-
+Constuction of Whole-brain single-cell datasets is done with the notebook `Analysis/Dataset_builder.jl`. This creates `DATA_FishName.h5` files stored in `DataAndModels/Data_WBSC/WBSC/`.
 
 #### 1.2. Voxelized datasets
+
+Constuction of Whole-brain voxelized datasets is done with the notebook `Analysis/Dataset_builder.jl`. This creates `VOXgrid.h5` files stored in `DataAndModels/Data_VOX/Voxelgrids/`, and `VOXsize_FishName.h5` files stored in `DataAndModels/Data_VOX/Voxelized/`.
 
 
 

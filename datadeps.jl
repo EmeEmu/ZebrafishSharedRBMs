@@ -7,6 +7,10 @@ ENV["DATADEPS_LOAD_PATH"] = joinpath(dirname(Base.current_project()), "DataAndMo
 ENV["DATADEPS_ALWAYS_ACCEPT"] = true
 ENV["DATADEPS_NO_STANDARD_LOAD_PATH"] = true
 
+if !isdir(ENV["DATADEPS_LOAD_PATH"])
+  mkdir(ENV["DATADEPS_LOAD_PATH"])
+end
+
 
 register(DataDep(
   "Data_WBSC",
