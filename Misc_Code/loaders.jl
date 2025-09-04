@@ -48,6 +48,22 @@ function load_voxgrid(vsize::Float64)
 end
 
 
+function load_voxRBMs(subdir::AbstractString, name::String)
+  if !isempty(subdir)
+    ll = "RBMs_Vox/" * subdir
+  else
+    ll = "RBMs_Vox"
+  end
+  dir = @datadep_str(ll)
+  paths = glob("*$name*h5", dir)
+  return paths
+end
+function load_voxRBM(subdir::AbstractString, name::String)
+  path = load_voxRBMs(subdir, name)
+  @assert length(path) == 1 "multiple models `$name` were found in $subdir :\n$path"
+  return path[1]
+end
+
 
 base_path = joinpath(dirname(Base.current_project()), "DataAndModels")
 @assert isdir(base_path)

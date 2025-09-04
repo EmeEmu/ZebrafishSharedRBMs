@@ -47,7 +47,11 @@ register(DataDep(
     (md5, "05a155da8a122537f35c622ff9dc2ef3"),
     (md5, "643cab094e17564f28b0acf09b2ae73b"),
   ];
-  post_fetch_method=unpack
+  post_fetch_method=[
+    identity,
+    unpack,
+    unpack,
+  ]
 ))
 
 @info "The data will be downloaded automatically when needed to: $(ENV["DATADEPS_LOAD_PATH"])"

@@ -127,6 +127,12 @@ We provide three notebooks to train and validate voxelized RBMs :
 - `Analysis/Voxelized_CrossValidation.jl` : cross validate training hyperparameters for a single-fish training. The fish can be selected interactively.
 
 
+### 3. Figures
+
+#### 3.2. Fig.2 and S2-4
+
+Figure 2 and associated supplementary figures are produced with the notebook `Figures/Fig.Voxelized.jl`.
+
 
 ---
 
