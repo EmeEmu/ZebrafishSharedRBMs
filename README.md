@@ -150,7 +150,11 @@ We provide three notebooks to train and validate Whole-Brain Single-Cell RBMs :
 
 #### 3.2. Fig.2 and S2-4
 
-Figure 2 and associated supplementary figures are produced with the notebook `Figures/Fig.Voxelized.jl`.
+Figure 2 and associated supplementary figures are produced with the notebook `Figures/Fig.Voxelized.jl`. This notebook requires the voxelized dataset and voxelized RBMs, which are available as `DataDeps` or can be recomputed as described previously.
+
+#### 3.3 Fig.3 and S5-8
+
+Figure 3 and associated supplementary figures are produced with the notebook `Figures/Fig_Reinit_training.jl`. This notebook requires the whole-brain single-neuron dataset, teacher and student RBMs, which are available as `DataDeps` or can be recomputed as described previously. It also requires the precomputed metrics between weight maps `WeightDist_6fish_WBSC_*.h5` which is created by `Analysis/Weight_Map_Distance.jl`. For conveniance we also provide this file as a `DataDeps`.
 
 
 ---

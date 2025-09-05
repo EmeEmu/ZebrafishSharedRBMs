@@ -72,5 +72,19 @@ register(DataDep(
   post_fetch_method=unpack
 ))
 
+register(DataDep(
+  "Misc",
+  "Miscellaneous precomputed files hosted on Zenodo.",
+  [
+    "http://134.157.132.30:8000/Misc/WeightDist_6fish_WBSC_M100_l10.02_l2l10_sigma4_epsilon1.0e-5.h5",
+  ],
+  [
+    (md5, "5e942a1c19861fd44cc072675d866176"),
+  ];
+  post_fetch_method=[
+    identity
+  ]
+))
+
 @info "The data will be downloaded automatically when needed to: $(ENV["DATADEPS_LOAD_PATH"])"
 

@@ -66,12 +66,23 @@ end
 
 function load_wbscRBMs(subdir::AbstractString, name::String)
   dir = @datadep_str("RBMs_WBSC/" * subdir)
-  paths = glob("*$name*h5", dir)
+  paths = glob("*$name*h5*", dir)
   return paths
 end
 function load_wbscRBM(subdir::AbstractString, name::String)
   path = load_wbscRBMs(subdir, name)
   @assert length(path) == 1 "multiple models `$name` were found in $subdir :\n$path"
+  return path[1]
+end
+
+function load_miscs(name::String)
+  dir = @datadep_str("Misc")
+  paths = glob("$name*", dir)
+  return paths
+end
+function load_misc(name::String)
+  path = load_miscs(name)
+  @assert length(path) == 1 "multiple datas `$name` were found in\n$path"
   return path[1]
 end
 
@@ -87,3 +98,4 @@ RBM_WBSC_bRBM = joinpath(base_path, "RBMs_WBSC", "bRBMs")
 RBM_WBSC_biRBM = joinpath(base_path, "RBMs_WBSC", "biRBMs")
 RBM_WBSC_biRBMbefore = joinpath(base_path, "RBMs_WBSC", "biRBMs_before_training")
 RBM_WBSC_REPEAT = joinpath(base_path, "RBMs_WBSC", "Repeats")
+MISC = joinpath(base_path, "Misc")
