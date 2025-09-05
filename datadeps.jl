@@ -77,12 +77,24 @@ register(DataDep(
   "Miscellaneous precomputed files hosted on Zenodo.",
   [
     "http://134.157.132.30:8000/Misc/WeightDist_6fish_WBSC_M100_l10.02_l2l10_sigma4_epsilon1.0e-5.h5",
+    "http://134.157.132.30:8000/Misc/DeepFakeFreeEnergy_6fish_WBSC_M100_l10.02_l2l10.h5",
+    "http://134.157.132.30:8000/Misc/DeepFakeTransferMethods_6fish_WBSC_M100_l10.02_l2l10.h5",
+    "http://134.157.132.30:8000/Misc/DeepFakeStats_6fish_WBSC_M100_l10.02_l2l10.h5",
+    "http://134.157.132.30:8000/Misc/DeepFakeActivityDistance_6fish_WBSC_M100_l10.02_l2l10.h5",
   ],
   [
     (md5, "5e942a1c19861fd44cc072675d866176"),
+    (md5, "690513f0abb2ff7e63174cda77c8ebd8"),
+    (md5, "bc5a347f87bcc8618ed39d6de21963a3"),
+    (md5, "b0ca8b4ecba9f59905b1b58480e01a74"),
+    (md5, "81c7365362701b98eb738dd493a5a8e0"),
   ];
   post_fetch_method=[
-    identity
+    identity,
+    identity,
+    identity,
+    identity,
+    identity,
   ]
 ))
 
