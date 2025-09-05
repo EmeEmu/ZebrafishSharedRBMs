@@ -64,6 +64,16 @@ function load_voxRBM(subdir::AbstractString, name::String)
   return path[1]
 end
 
+function load_wbscRBMs(subdir::AbstractString, name::String)
+  dir = @datadep_str("RBMs_WBSC/" * subdir)
+  paths = glob("*$name*h5", dir)
+  return paths
+end
+function load_wbscRBM(subdir::AbstractString, name::String)
+  path = load_wbscRBMs(subdir, name)
+  @assert length(path) == 1 "multiple models `$name` were found in $subdir :\n$path"
+  return path[1]
+end
 
 base_path = joinpath(dirname(Base.current_project()), "DataAndModels")
 @assert isdir(base_path)
@@ -73,3 +83,7 @@ DATA_VOXGRID = joinpath(base_path, "Data_Vox", "Voxelgrids")
 RBM_VOX = joinpath(base_path, "RBMs_Vox")
 RBM_VOXREPEAT = joinpath(base_path, "RBMs_Vox", "Repeats")
 RBM_VOXCROSSVAL = joinpath(base_path, "RBMs_Vox", "CrossValidation")
+RBM_WBSC_bRBM = joinpath(base_path, "RBMs_WBSC", "bRBMs")
+RBM_WBSC_biRBM = joinpath(base_path, "RBMs_WBSC", "biRBMs")
+RBM_WBSC_biRBMbefore = joinpath(base_path, "RBMs_WBSC", "biRBMs_before_training")
+RBM_WBSC_REPEAT = joinpath(base_path, "RBMs_WBSC", "Repeats")

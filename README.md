@@ -98,25 +98,37 @@ TODO
 
 The present repository contains all the code and data used to produce the analysis and figures in ????. The following section describes the pipeline to reproduce the analysis.
 
+### 0. System requirements
+
+All computations were performed on a Ubuntu 20.04 PC with the following specs :
+
+- CPU : AMD Ryzen 9 3950X (16 cores)
+- GPU : GeForce RTX 3080Ti (12GB)
+- RAM : 128 GB
+
+While not tested, everything should work with lower specs. An important limiting factor is the RAM which needs to be ~60GB for some computations.
+
 ### 1. Creating the datasets
 
 All datasets are already precomputed, hosted on Zenodo [here](example.com), and available through the `DataDeps` prodedure described above.
 
 The rest of this section describes how to recompute them, from raw data (available from the authors on request). 
 
-#### 1.1. Whole-brain single-neuron datasets
+#### 1.1. Voxelized datasets
+
+Constuction of Whole-brain voxelized datasets is done with the notebook `Analysis/Dataset_builder.jl`. This creates `VOXgrid.h5` files stored in `DataAndModels/Data_VOX/Voxelgrids/`, and `VOXsize_FishName.h5` files stored in `DataAndModels/Data_VOX/Voxelized/`.
+
+#### 1.2. Whole-brain single-neuron datasets
 
 Constuction of Whole-brain single-cell datasets is done with the notebook `Analysis/Dataset_builder.jl`. This creates `DATA_FishName.h5` files stored in `DataAndModels/Data_WBSC/WBSC/`.
 
-#### 1.2. Voxelized datasets
-
-Constuction of Whole-brain voxelized datasets is done with the notebook `Analysis/Dataset_builder.jl`. This creates `VOXgrid.h5` files stored in `DataAndModels/Data_VOX/Voxelgrids/`, and `VOXsize_FishName.h5` files stored in `DataAndModels/Data_VOX/Voxelized/`.
 
 ### 2. Training the RBMs
 
 All RBMs are already precomputed, hosted on Zenodo [here](example.com), and available through the `DataDeps` prodedure described above.
 
-The rest of this section describes how to recompute them. Bare in mind that RBMs are stochastic, therefore training new models will result in different models than those used in the article.
+The rest of this section describes how to recompute them. Bare in mind that RBMs are stochastic, therefore retraining will result in different models than those used in the article.
+As training can be long, and some computation can require a lot of RAM or disk space, most notebooks contain interactive switches to launch computations on demand, and some cells have been disabled.
 
 #### 2.1. Voxelized RBMs
 
@@ -126,6 +138,13 @@ We provide three notebooks to train and validate voxelized RBMs :
 - `Analysis/VoxelizedMultiFishTraining.jl` : train an RBM from multiple fish. The training parameters can be selected interactively. Two methods are provided to train a single or repeated trainings.
 - `Analysis/Voxelized_CrossValidation.jl` : cross validate training hyperparameters for a single-fish training. The fish can be selected interactively.
 
+#### 2.1. Single-Neuron RBMs
+
+We provide three notebooks to train and validate Whole-Brain Single-Cell RBMs :
+
+- `Analysis/WholeBrainSingleFishTraining.jl` : train an RBM from a single fish. The fish and training parameters can be selected interactively. Two methods are provided to train a single or repeated trainings.
+- `Analysis/WholeBrainSingleFishStudentTraining.jl` : train a student RBM from a given teacher. Both teacher and students can be selected interactively. In order to run this code you first need to precompute the teacher weight maps using `Analysis/BuildingWeightMaps.jl` (be carefull this requires ~15GB extra disk space per fish).
+- `Analysis/BACKUP1/MultiRBMPaper/Analysis/WholeBrainSingleFishAnalysis.jl` : investigate and evaluate a trained RBM. This notebook is not required for figures or other analyses, but is helpfull to evaluate RBMs.
 
 ### 3. Figures
 

@@ -54,5 +54,23 @@ register(DataDep(
   ]
 ))
 
+register(DataDep(
+  "RBMs_WBSC",
+  "Whole-brain single-cell RBMs hosted on Zenodo.",
+  [
+    "http://134.157.132.30:8000/RBMs_WBSC/bRBMs.zip",
+    "http://134.157.132.30:8000/RBMs_WBSC/biRBMs.zip",
+    "http://134.157.132.30:8000/RBMs_WBSC/biRBMs_before_training.zip",
+    "http://134.157.132.30:8000/RBMs_WBSC/Repeats.zip",
+  ],
+  [
+    (md5, "47a9687d41a5a0e001a746e08e7a9c25"),
+    (md5, "65ceb9e691a41d8e99cbcfe063ac9f0d"),
+    (md5, "3b9572000ea75e2b6467ab6c500bce34"),
+    (md5, "b2e98a47f71f27983e6358a83e1be7d6"),
+  ];
+  post_fetch_method=unpack
+))
+
 @info "The data will be downloaded automatically when needed to: $(ENV["DATADEPS_LOAD_PATH"])"
 
