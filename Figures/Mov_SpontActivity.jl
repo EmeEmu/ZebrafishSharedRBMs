@@ -38,7 +38,8 @@ begin
 	using ColorSchemes
 
 	CONV = @ingredients("conventions.jl")
-	include(joinpath(CONV.UTILSPATH, "fig_saving.jl"))
+	include(joinpath(dirname(Base.current_project()), "Misc_Code", "fig_saving.jl"))
+
 end
 
 # ╔═╡ 73d45550-016f-402a-be2b-ed34a44bee52
@@ -292,11 +293,10 @@ begin
 end
 
 # ╔═╡ b27c0d9f-773e-496b-b277-0cb6936ba36b
-#=╠═╡
 display(fig_mouv_single)
-  ╠═╡ =#
 
 # ╔═╡ 3efbb871-935f-49f9-8fe1-fb482705821a
+# ╠═╡ disabled = true
 #=╠═╡
 record(
 		fig_mouv_single, 
@@ -313,7 +313,7 @@ record(
 
 
 # ╔═╡ 8d4294af-e617-4891-a8d5-681d39ee51f5
-
+h_single.colormap
 
 # ╔═╡ 9d9ae4b0-d80f-4361-8a5c-fba800a43cbe
 md"""

@@ -38,7 +38,8 @@ begin
 	using ColorSchemes
 
 	CONV = @ingredients("conventions.jl")
-	include(joinpath(CONV.UTILSPATH, "fig_saving.jl"))
+	include(joinpath(dirname(Base.current_project()), "Misc_Code", "fig_saving.jl"))
+
 end
 
 # ╔═╡ 73d45550-016f-402a-be2b-ed34a44bee52
@@ -384,7 +385,7 @@ record(
 
 
 # ╔═╡ Cell order:
-# ╠═e0945b60-eb8d-11ef-3139-fd7b39966a81
+# ╟─e0945b60-eb8d-11ef-3139-fd7b39966a81
 # ╠═cbd368fa-3c73-418d-8868-b9870802c152
 # ╠═35983245-e4e4-4136-8197-2622ed3b4417
 # ╠═9036e933-7ee4-4951-be5e-ab759c5d6f5f
