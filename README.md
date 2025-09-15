@@ -161,22 +161,22 @@ We provide three notebooks to train and validate Whole-Brain Single-Cell RBMs :
 All figures and movies are already precomputed and available in the directory `Figures/Panels/`.
 
 ### Fig.1 and S1
-<img src="Figures/Panels/Fig_Degen/rbm_degen.svg" alt="Fig1" width="10px"/>
+<img src="Figures/Panels/Fig_Degen/rbm_degen.svg" alt="Fig1" width="200px"/>
 
 Figure 1 and associated supplementary figure are produced with the notebook `Figures/Fig_Degen.jl`. This notebook requires the precomputation of `Analysis/Degenerecense.jl` which requires a lot of compute time of disk space (~60GB). 
 
 ### Fig.2 and S2-4
-<img src="Figures/Panels/Fig_Voxelized/main.svg" alt="Fig2" width="10px"/>
+<img src="Figures/Panels/Fig_Voxelized/main.svg" alt="Fig2" width="200px"/>
 
 Figure 2 and associated supplementary figures are produced with the notebook `Figures/Fig_Voxelized.jl`. This notebook requires the voxelized dataset and voxelized RBMs, which are available as `DataDeps` or can be recomputed as described previously.
 
 ### Fig.3 and S5-7
-<img src="Figures/Panels/Fig_Reinit_training/main.svg" alt="Fig3" width="10px"/>
+<img src="Figures/Panels/Fig_Reinit_training/main.svg" alt="Fig3" width="200px"/>
 
 Figure 3 and associated supplementary figures are produced with the notebook `Figures/Fig_Reinit_training.jl`. This notebook requires the whole-brain single-neuron dataset, teacher and student RBMs, which are available as `DataDeps` or can be recomputed as described previously. It also requires the precomputed metrics between weight maps `WeightDist_6fish_WBSC_*.h5` which is created by `Analysis/Weight_Map_Distance.jl`. For conveniance we also provide this file as a `DataDeps`.
 
 ### Fig.4 and S8-10
-<img src="Figures/Panels/Fig_DeepFake/main.svg" alt="Fig4" width="10px"/>
+<img src="Figures/Panels/Fig_DeepFake/main.svg" alt="Fig4" width="200px"/>
 
 Figure 4 and associated supplementary figures are produced with the notebook `Figures/Fig_DeepFake.jl`. This notebook requires the whole-brain single-neuron dataset, teacher and student RBMs, which are available as `DataDeps` or can be recomputed as described previously. It also requires several precomputation `DeepFake*.h5` which are created by `Analysis/DeepFake.jl`. For conveniance we also provide these files as `DataDeps`.
 
