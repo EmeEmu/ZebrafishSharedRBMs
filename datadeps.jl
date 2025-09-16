@@ -11,11 +11,12 @@ if !isdir(ENV["DATADEPS_LOAD_PATH"])
   mkdir(ENV["DATADEPS_LOAD_PATH"])
 end
 
+url = "https://zenodo.org/records/17121390/files/"
 
 register(DataDep(
   "Data_WBSC",
   "Whole-brain single-neuron datasets hosted on Zenodo.",
-  "http://134.157.132.30:8000/Data_WBSC/WBSC.zip",
+  url*"WBSC.zip",
   (md5, "d55b787daa491a0f7da44e0c234e16e4");
   post_fetch_method=unpack
 ))
@@ -24,8 +25,8 @@ register(DataDep(
   "Data_Vox",
   "Whole-brain voxelized datasets hosted on Zenodo.",
   [
-    "http://134.157.132.30:8000/Data_Vox/Voxelized.zip",
-    "http://134.157.132.30:8000/Data_Vox/Voxelgrids.zip",
+    url*"Voxelized.zip",
+    url*"Voxelgrids.zip",
   ],
   [
     (md5, "76315cdfa1f0e6d5f91b1333eddec048"),
@@ -38,9 +39,9 @@ register(DataDep(
   "RBMs_Vox",
   "Whole-brain voxelized RBMs hosted on Zenodo.",
   [
-    "http://134.157.132.30:8000/RBMs_Vox/vRBMr_multivoxelized_6fish_20.0vox_M40_l2l10.1.h5",
-    "http://134.157.132.30:8000/RBMs_Vox/CrossValidation.zip",
-    "http://134.157.132.30:8000/RBMs_Vox/Repeats.zip",
+    url*"vRBMr_multivoxelized_6fish_20.0vox_M40_l2l10.1.h5",
+    url*"CrossValidation_VOX.zip",
+    url*"Repeats_VOX.zip",
   ],
   [
     (md5, "5d21dd6cad889b139e02fcef490b86e3"),
@@ -58,10 +59,10 @@ register(DataDep(
   "RBMs_WBSC",
   "Whole-brain single-cell RBMs hosted on Zenodo.",
   [
-    "http://134.157.132.30:8000/RBMs_WBSC/bRBMs.zip",
-    "http://134.157.132.30:8000/RBMs_WBSC/biRBMs.zip",
-    "http://134.157.132.30:8000/RBMs_WBSC/biRBMs_before_training.zip",
-    "http://134.157.132.30:8000/RBMs_WBSC/Repeats.zip",
+    url*"bRBMs.zip",
+    url*"biRBMs.zip",
+    url*"biRBMs_before_training.zip",
+    url*"Repeats_WBSC.zip",
   ],
   [
     (md5, "47a9687d41a5a0e001a746e08e7a9c25"),
@@ -76,11 +77,11 @@ register(DataDep(
   "Misc",
   "Miscellaneous precomputed files hosted on Zenodo.",
   [
-    "http://134.157.132.30:8000/Misc/WeightDist_6fish_WBSC_M100_l10.02_l2l10_sigma4_epsilon1.0e-5.h5",
-    "http://134.157.132.30:8000/Misc/DeepFakeFreeEnergy_6fish_WBSC_M100_l10.02_l2l10.h5",
-    "http://134.157.132.30:8000/Misc/DeepFakeTransferMethods_6fish_WBSC_M100_l10.02_l2l10.h5",
-    "http://134.157.132.30:8000/Misc/DeepFakeStats_6fish_WBSC_M100_l10.02_l2l10.h5",
-    "http://134.157.132.30:8000/Misc/DeepFakeActivityDistance_6fish_WBSC_M100_l10.02_l2l10.h5",
+    url*"WeightDist_6fish_WBSC_M100_l10.02_l2l10_sigma4_epsilon1.0e-5.h5",
+    url*"DeepFakeFreeEnergy_6fish_WBSC_M100_l10.02_l2l10.h5",
+    url*"DeepFakeTransferMethods_6fish_WBSC_M100_l10.02_l2l10.h5",
+    url*"DeepFakeStats_6fish_WBSC_M100_l10.02_l2l10.h5",
+    url*"DeepFakeActivityDistance_6fish_WBSC_M100_l10.02_l2l10.h5",
   ],
   [
     (md5, "5e942a1c19861fd44cc072675d866176"),

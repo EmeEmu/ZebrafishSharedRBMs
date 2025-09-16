@@ -63,7 +63,7 @@ Both submodules are extensions of the julia package [RestrictedBoltzmannMachines
 └── Manifest.toml             # Full reproducible environment
 
 ```
-Data and trained RBMs are downloaded on demand from the [Zenodo repository](https://zenodo.org/) and stored in `DataAndModels/` (created automatically).
+Data and trained RBMs are downloaded on demand from the [Zenodo repository](https://zenodo.org/records/17121390) and stored in `DataAndModels/` (created automatically).
 
 
 ## Setting Up the Julia Environment
@@ -94,7 +94,7 @@ Open the desired `.jl` notebook from `Analysis/` or `Figures/`.
 
 ## Data & Model Dependencies
 
-This project uses [DataDeps.jl](https://github.com/oxinabox/DataDeps.jl) to fetch large datasets and pretrained models hosted on Zenodo [here](https://zenodo.org/). All datasets are listed in `datadeps.jl`.  
+This project uses [DataDeps.jl](https://github.com/oxinabox/DataDeps.jl) to fetch large datasets and pretrained models hosted on Zenodo [here](https://zenodo.org/records/17121390). All datasets are listed in `datadeps.jl`.  
 All files are stored in `DataAndModels/` and downloaded automatically when first requested.  
 The paths of data, model, and pre-computation files can be obtained using the methods in `loader.jl`. For example to get the path the Whole-Brain Single-Cell binarized spikes of the fish names *Eglantine*, you can run :
 ```julia
