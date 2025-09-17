@@ -240,6 +240,9 @@ ACTS = [
 	load_data(LOAD.load_dataVOX(fish, vox_size)).spikes for fish in FISH
 ];
 
+# ╔═╡ 40837778-55e1-4a02-9033-636829cc5209
+
+
 # ╔═╡ 29931e52-3d41-4f9f-a6b5-5baac64ec1b4
 md"""
 ### 1.D-E. V corr
@@ -1107,17 +1110,18 @@ md"""
 
 # ╔═╡ 1565bcf6-7f53-41c8-9add-19b44fc40a20
 begin
-	fig_S_crossval = Figure(size=(53, 49).*(5,2).*(4/3/0.35))
+	fig_S_crossval = Figure(size=(53, 49).*(7,2).*(4/3/0.35))
 	
 	g_ab_S_crossval = fig_S_crossval[1:2,1:3] = GridLayout()
 	g_a_S_crossval = g_ab_S_crossval[1,1:2] = GridLayout()
 	g_b_S_crossval = g_ab_S_crossval[1,3] = GridLayout()
 	g_abCB_S_crossval = g_ab_S_crossval[1,4] = GridLayout()
 	g_c_S_crossval = fig_S_crossval[1:2, 4:5] = GridLayout()
+	g_d_S_crossval = fig_S_crossval[1:2, 6:7] = GridLayout()
 
 	for (label, layout) in zip(
-		["A", "B", "C"], 
-		[g_a_S_crossval, g_b_S_crossval, g_c_S_crossval]
+		["A", "B", "C", "D"], 
+		[g_a_S_crossval, g_b_S_crossval, g_c_S_crossval, g_d_S_crossval]
 	)
 	    Label(layout[1, 1, TopLeft()], label,
 	        fontsize = Makie.current_default_theme().Axis.titlesize.val,
@@ -1182,6 +1186,93 @@ begin
 	
 	# fig
 end
+
+# ╔═╡ 2bc1fe15-8456-4684-b9d4-eb048a337239
+
+
+# ╔═╡ 3113beef-1a37-451d-8c85-f8e0f30fc78b
+begin
+	vCOV = [cov(vact') for vact in ACTS];
+	vCOV_tr = []
+	for i in 1:length(vCOV)
+		for j in 1:length(vCOV)
+			if i == j
+				continue
+			end
+			push!(vCOV_tr, tr(vCOV[i] * vCOV[j])/(size(vCOV[i],1)*size(vCOV[i],2)))
+			# push!(vCOV_tr, tr(vCOV[i] .* vCOV[j]))
+		end
+	end
+
+	hCOV = [cov(hact') for hact in HACTS];
+	hCOV_tr = []
+	for i in 1:length(hCOV)
+		for j in 1:length(hCOV)
+			if i == j
+				continue
+			end
+			push!(hCOV_tr, tr(hCOV[i] * hCOV[j])/(size(hCOV[i],1)*size(hCOV[i],2)))
+			# push!(hCOV_tr, tr(hCOV[i] .* hCOV[j]))
+		end
+	end
+end
+
+# ╔═╡ 46c1cd03-c30c-46aa-b716-165a757dc09c
+begin
+	# fig_o = Figure()
+	
+	xo_v = zeros(size(vCOV_tr)) .+ exp.(-(abs.(vCOV_tr .- mean(vCOV_tr))./0.2).^2) .* 0.15 .* randn(size(vCOV_tr))
+	xo_h = ones(size(hCOV_tr)) .+ exp.(-(abs.(hCOV_tr .- mean(hCOV_tr))./0.2).^2) .* 0.15 .* randn(size(hCOV_tr))
+	
+	ax_o = Axis(
+		g_d_S_crossval[1,1],
+		ylabel=L"\frac{1}{n^2}\ \mathrm{Tr}( \mathrm{cov}(x^{f1}) \cdot \mathrm{cov}(x^{f2}) )",
+		xticks=([0,1], ["voxels","hidden"]),
+		bottomspinevisible=false,
+		xticksvisible=false,
+		yscale=log10,
+	)
+
+	for i in 1:length(vCOV_tr)
+		lines!(
+			ax_o,
+			[xo_v[i], xo_h[i]], 
+			[vCOV_tr[i], hCOV_tr[i]],
+			color=(:grey, 0.25)
+		)
+	end
+	
+	# violin!(
+	# 	ax_o,
+	# 	zeros(size(vCOV_tr)), vCOV_tr, 
+	# 	color=(:orange, 0.5),
+	# 	datalimits=(1.e-9,1.e10)
+	# )
+	scatter!(
+		ax_o,
+		xo_v,
+		vCOV_tr,
+		color=:orange,
+		markersize=15,
+	)
+	# violin!(
+	# 	ax_o,
+	# 	ones(size(hCOV_tr)), hCOV_tr, 
+	# 	color=(:green, 0.5),
+	# 	datalimits=(1.e-9,1.e10)
+	# )
+	scatter!(
+		ax_o,
+		xo_h,
+		hCOV_tr,
+		color=:green,
+		markersize=15,
+	)
+	# fig_o
+end
+
+# ╔═╡ 5088865e-a2cc-43ec-bbaf-c9fdaaf80f84
+
 
 # ╔═╡ 84256c48-9afe-4fb6-8c32-10c13b4a99cc
 all_axes_Scrossval = [ax for ax in fig_S_crossval.content if typeof(ax)==Axis];
@@ -1675,6 +1766,7 @@ end
 # ╠═b64106e0-0000-4732-9c55-7dab86eb74d0
 # ╟─b9dfbce8-699c-4b8e-90d2-48932af4e361
 # ╠═a7038417-19fa-48e6-8cec-245c38b8549b
+# ╠═40837778-55e1-4a02-9033-636829cc5209
 # ╟─29931e52-3d41-4f9f-a6b5-5baac64ec1b4
 # ╠═85225d68-9e87-40fd-990f-48092dafdc12
 # ╠═d5ac9557-fd7a-4dfe-acd1-837f43ed90e3
@@ -1785,6 +1877,10 @@ end
 # ╠═1e46fa45-1d1b-4bda-a290-bfe38b56ff36
 # ╠═5cb568a6-8124-4685-96a6-661935349790
 # ╠═e3a97867-38f2-42d9-8582-5a77c2521737
+# ╠═2bc1fe15-8456-4684-b9d4-eb048a337239
+# ╠═3113beef-1a37-451d-8c85-f8e0f30fc78b
+# ╠═46c1cd03-c30c-46aa-b716-165a757dc09c
+# ╠═5088865e-a2cc-43ec-bbaf-c9fdaaf80f84
 # ╠═84256c48-9afe-4fb6-8c32-10c13b4a99cc
 # ╠═1a25cdb0-398a-43bf-94fc-05e1bf292a25
 # ╠═82441764-acd6-45f4-9606-4a0b87c8463c
