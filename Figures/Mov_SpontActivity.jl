@@ -192,7 +192,9 @@ end
 
 # ╔═╡ cb5d1aa6-9f4a-4737-ad27-341ff563d353
 begin
-	cmap = ColorSchemes.amp
+	#cmap = ColorSchemes.amp
+	cmap = ColorSchemes.algae
+	# cmap = ColorSchemes.Greens
 	cmapa = colorscheme_alpha_sigmoid(
 		cmap,
 		0.05,
@@ -300,7 +302,7 @@ display(fig_mouv_single)
 #=╠═╡
 record(
 		fig_mouv_single, 
-		replace(@figpath("SingleFish"), ".svg"=>".mp4"), 
+		replace(@figpath("SingleFish_green"), ".svg"=>".mp4"), 
 		t_single_start:t_single_stop,
 		framerate=out_framerate,
 		format="mp4", profile="main", 
@@ -382,7 +384,7 @@ display(fig_mouv_multi)
 # ╔═╡ 2db1b8a8-d9cd-42e3-8b64-2a5226175869
 record(
 		fig_mouv_multi, 
-		replace(@figpath("SingleMulti"), ".svg"=>".mp4"), 
+		replace(@figpath("SingleMulti_green"), ".svg"=>".mp4"), 
 		t_single_start:t_single_stop,
 		framerate=out_framerate,
 		format="mp4", profile="main", 

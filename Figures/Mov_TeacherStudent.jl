@@ -184,7 +184,8 @@ end
 
 # ╔═╡ 1f07e89f-06d8-4417-a86d-6643be5645f2
 begin
-	cmap = ColorSchemes.amp
+	#cmap = ColorSchemes.amp
+	cmap = ColorSchemes.algae
 	cmapa = colorscheme_alpha_sigmoid(
 		cmap,
 		0.05,
@@ -371,13 +372,40 @@ begin
 		# font=Makie.current_default_theme().Axis.titlefont.val,
 	)
 
+
+	
+	text!(ax_mouv_TS_main,
+		250, 1100, 
+		text="Data T", 
+		align=(:center, :bottom),
+		fontsize=Makie.current_default_theme().Axis.titlesize.val,
+		# font=Makie.current_default_theme().Axis.titlefont.val,
+	)
+	text!(ax_mouv_TS_main,
+		250+500, 1100, 
+		text="T➔T", 
+		align=(:center, :bottom),
+		fontsize=Makie.current_default_theme().Axis.titlesize.val,
+		# font=Makie.current_default_theme().Axis.titlefont.val,
+	)
+	text!(ax_mouv_TS_main,
+		250+1000, 1100, 
+		text="T➔S", 
+		align=(:center, :bottom),
+		fontsize=Makie.current_default_theme().Axis.titlesize.val,
+		# font=Makie.current_default_theme().Axis.titlefont.val,
+	)
+
 	fig_mouv_TS
 end
+
+# ╔═╡ f43db26a-0f6d-4014-8e08-971078693b13
+display(fig_mouv_TS)
 
 # ╔═╡ 2a055b66-e1d5-4426-b4d4-6fdb86ef73d8
 record(
 		fig_mouv_TS, 
-		replace(@figpath("DeepFake_TS"), ".svg"=>".mp4"), 
+		replace(@figpath("DeepFake_TS_green"), ".svg"=>".mp4"), 
 		t_TS_start:t_TS_stop,
 		framerate=out_framerate,
 		format="mp4", profile="main", 
@@ -471,13 +499,37 @@ begin
 		# font=Makie.current_default_theme().Axis.titlefont.val,
 	)
 
+
+	
+	text!(ax_mouv_ST_main,
+		250, 1100, 
+		text="Data S", 
+		align=(:center, :bottom),
+		fontsize=Makie.current_default_theme().Axis.titlesize.val,
+		# font=Makie.current_default_theme().Axis.titlefont.val,
+	)
+	text!(ax_mouv_ST_main,
+		250+500, 1100, 
+		text="S➔S", 
+		align=(:center, :bottom),
+		fontsize=Makie.current_default_theme().Axis.titlesize.val,
+		# font=Makie.current_default_theme().Axis.titlefont.val,
+	)
+	text!(ax_mouv_ST_main,
+		250+1000, 1100, 
+		text="S➔T", 
+		align=(:center, :bottom),
+		fontsize=Makie.current_default_theme().Axis.titlesize.val,
+		# font=Makie.current_default_theme().Axis.titlefont.val,
+	)
+
 	fig_mouv_ST
 end
 
 # ╔═╡ 825038e3-40da-46bb-b7f6-14f22d172f1a
 record(
 		fig_mouv_ST, 
-		replace(@figpath("DeepFake_ST"), ".svg"=>".mp4"),
+		replace(@figpath("DeepFake_ST_green"), ".svg"=>".mp4"),
 		t_ST_start:t_ST_stop,
 		framerate=out_framerate,
 		format="mp4", profile="main", 
@@ -516,6 +568,7 @@ record(
 # ╠═8dde8527-5fde-4cf2-bdaf-ce2fe7f6b0ce
 # ╠═140aca9e-e3c6-4d1f-8405-7760e90567f1
 # ╠═fa424471-8d5a-4c13-871e-ffc371ad03fe
+# ╠═f43db26a-0f6d-4014-8e08-971078693b13
 # ╠═2a055b66-e1d5-4426-b4d4-6fdb86ef73d8
 # ╟─7802da5f-9386-4e31-bb9d-26202081d9e3
 # ╠═563bb535-5df2-408b-bc3f-ea7655fa9343
