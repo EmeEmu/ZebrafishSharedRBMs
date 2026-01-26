@@ -47,9 +47,6 @@ using Statistics
 # ╔═╡ b3c0d22b-f925-4d42-9a1f-893ecee98099
 using Clustering
 
-# ╔═╡ d8514df1-f200-411e-b4dc-259395debb5f
-using BrainRBMjulia:corrplotter!
-
 # ╔═╡ ecf7149d-9a42-47f9-9f87-b41c80e6b0cc
 begin
 	using LinearAlgebra
@@ -692,17 +689,69 @@ md"""
 ## 1.H. corr Comparison
 """
 
+# ╔═╡ 5b0577a0-359c-45f6-a793-066d0bc1c323
+md"""
+### Drop-one out - loading the data
+"""
+
+# ╔═╡ 24200602-8232-4817-b519-445291ccc6ca
+begin
+	datas = Dict(f=>load_data(LOAD.load_dataVOX(f, vox_size)) for f in FISH)
+	dropA = Array{Float32}(undef, length(FISH), length(FISH), 40*(40-1)÷2)
+	for (i,df) in enumerate(FISH)
+		rbm_path = LOAD.load_voxRBM("", "multivoxelized_6fish_droped$(df)")
+		rbm, _,_,_,_,_ = load_brainRBM(rbm_path)
+		for (j,f) in enumerate(FISH)
+			h = translate(rbm, datas[f].spikes)
+			Ch = triangle_part(cor(h'))
+			dropA[i,j,:] .= Ch
+		end
+	end
+	hcorr_dropped_nRMSE_matrices = [
+		nRMSE(dropA[i,j,:], dropA[i,k,:]) 
+		for i∈1:length(FISH), 
+		j∈1:length(FISH), 
+		k∈1:length(FISH)
+	]
+end;
+
+# ╔═╡ 8853942b-1f01-4f6f-b130-7f387284bde4
+
+
+# ╔═╡ 54041ffa-eb8c-4076-b5c7-42d71cb7ce75
+
+
+# ╔═╡ 9f591d3f-b1f2-4cb5-b138-1effb964b53c
+md"""
+### Back to the figure
+"""
+
 # ╔═╡ 3bb9562b-2009-4174-baf3-5dc24422dd24
 begin
 	hcorr_nRMSE_flat = triangle_part((hcorr_nRMSE_matrix .+ hcorr_nRMSE_matrix') ./ 2)
 	vcorr_nRMSE_flat = triangle_part((vcorr_nRMSE_matrix .+ vcorr_nRMSE_matrix') ./ 2)
+
+	hcorr_droppedIN_nRMSE_flat = vcat([triangle_part((hcorr_dropped_nRMSE_matrices[i, 1:end .!=i, 1:end .!=i] .+ hcorr_dropped_nRMSE_matrices[i, 1:end .!=i, 1:end .!=i]') ./ 2) for i∈1:length(FISH) ]...)
+	hcorr_droppedOUT_nRMSE_flat = vcat([hcorr_dropped_nRMSE_matrices[i,i,1:end .!=i] for i∈1:length(FISH) ]...)
 end
 
 # ╔═╡ 5c5f9c1e-1817-4089-b186-b55a0c0d3870
 begin
 	using HypothesisTests: MannWhitneyUTest, pvalue
-	stest = MannWhitneyUTest(vcorr_nRMSE_flat,hcorr_nRMSE_flat)
-	pval = pvalue(stest, tail=:right)
+	pval = pvalue(
+		MannWhitneyUTest(
+			vcorr_nRMSE_flat,
+			hcorr_nRMSE_flat
+		), 
+		tail=:right
+	)
+	pval_dropped = pvalue(
+		MannWhitneyUTest(
+			vcorr_nRMSE_flat,
+			hcorr_droppedOUT_nRMSE_flat
+		), 
+		tail=:right
+	)
 end
 
 # ╔═╡ f554e469-3fd9-4ecb-a1b7-4b0a386e403b
@@ -710,13 +759,15 @@ begin
 	# fig3 = Figure()
 	ax_corrcomp = Axis(
 		g_h[1,1],
+		# fig3[1,1],
 		ylabel="nRMSE",
-		xticks=([0,1], ["ρmn","ρμν"]),
+		xticks=([0,1.5], ["ρmn","ρμν"]),
 		bottomspinevisible=false,
 		xticksvisible=false,
 	)
 	x_v = zeros(size(vcorr_nRMSE_flat)) .+ exp.(-(abs.(vcorr_nRMSE_flat .- mean(vcorr_nRMSE_flat))./0.1).^2) .* 0.15 .* randn(size(vcorr_nRMSE_flat))
 	x_h = ones(size(hcorr_nRMSE_flat)) .+ exp.(-(abs.(hcorr_nRMSE_flat .- mean(hcorr_nRMSE_flat))./0.2).^2) .* 0.15 .* randn(size(hcorr_nRMSE_flat))
+	x_hd = ones(size(hcorr_droppedOUT_nRMSE_flat)) .+ exp.(-(abs.(hcorr_droppedOUT_nRMSE_flat .- mean(hcorr_droppedOUT_nRMSE_flat))./0.2).^2) .* 0.15 .* randn(size(hcorr_droppedOUT_nRMSE_flat))
 
 	for i in 1:length(vcorr_nRMSE_flat)
 		lines!(
@@ -750,12 +801,31 @@ begin
 		ones(size(hcorr_nRMSE_flat)), hcorr_nRMSE_flat, 
 		color=(:green, 0.5)
 	)
+	
+	scatter!(
+		ax_corrcomp,
+		x_hd .+ 1,
+		hcorr_droppedOUT_nRMSE_flat,
+		color=:deepskyblue3
+	)
+	violin!(
+		ax_corrcomp,
+		ones(size(hcorr_droppedOUT_nRMSE_flat)) .+ 1, hcorr_droppedOUT_nRMSE_flat, 
+		color=(:deepskyblue3, 0.5)
+	)
 
 	bracket!(
 		ax_corrcomp,
 		0,0.9,1,0.9, 
 		style = :square, 
 		text="pval < $(ceil(pval, sigdigits=1))", 
+		width=3
+	)
+	bracket!(
+		ax_corrcomp,
+		0,0.55,2,0.55, 
+		style = :square, 
+		text="pval < $(ceil(pval_dropped, sigdigits=1))", 
 		width=3
 	)
 	
@@ -782,17 +852,32 @@ md"""
 # ╔═╡ 32b884b6-9d77-4010-8908-a65618231567
 FES = [free_energy(mrbm, act) for act in ACTS];
 
+# ╔═╡ e70dc31d-01e6-4145-af13-96b026d96ffd
+begin
+	FES_dropped = [
+		free_energy(
+			load_brainRBM(LOAD.load_voxRBM("", "multivoxelized_6fish_droped$(df)"))[1],
+			datas[df].spikes
+		) for df in FISH
+	]
+end;
+
 # ╔═╡ 499428c3-8f0f-4ec4-9df5-011d352bfd3a
 begin
 	# fig_FE = Figure()
 	ax_FE = Axis(
 		g_i[1,1], 
+		# fig_FE[1,1],
 		yscale=log10,
 		ylabel="Density",
 		xlabel="Free Energy , F(v)",
 		xtickformat = xs -> ["$(round(x/1.e4, digits=2))" for x in xs],
 	)
-	Label(g_i[1,1,Right()], halign=:right, valign=:bottom, "×10⁴")
+	Label(
+		g_i[1,1,Right()], 
+		# fig_FE[1,1,Right()], 
+		halign=:right, valign=:bottom, "×10⁴"
+	)
 	for i in 1:length(FISH)
 		density!(
 			ax_FE, FES[i], 
@@ -802,6 +887,23 @@ begin
 		)
 	end
 	xlims!(ax_FE, -1.e3, 1.e4)
+
+	ax_FE_inset = Axis(
+		g_i[1,1], 
+		# fig_FE[1,1],
+		width=Relative(0.6), height=Relative(0.6),
+		halign=1.3, valign=1.,
+		aspect=1,
+		xscale=log10, yscale=log10,
+		xticks=([1.e3, 1.e4], ["10³", "10⁴"]),
+		yticks=([1.e3, 1.e4], ["10³", "10⁴"]),
+		ylabel="left-out", xlabel="left-in",
+	)
+	lines!(ax_FE_inset, [4.e2, 4.e5], [4.e2, 4.e5], color=:grey)
+	scatter!(ax_FE_inset, vcat(FES...), vcat(FES_dropped...), color=(:deepskyblue3, 0.15))
+	xlims!(ax_FE_inset, 4.e2, 1.e4)
+	ylims!(ax_FE_inset, 4.e2, 1.e4)
+	
 	# fig_FE
 end
 
@@ -885,9 +987,14 @@ md"""
 """
 
 # ╔═╡ ff6c386a-d149-42c5-9df9-10f3179aa248
+# ╠═╡ disabled = true
+#=╠═╡
 voxelizations = [LOAD.load_voxgrid(vsize) for vsize∈[10., 15., 20., 25., 30., 35., 40., 45., 50.]]
+  ╠═╡ =#
 
 # ╔═╡ f561975b-2ff2-4ab1-be72-f8418066e468
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	VOXSIZE = []
 	N_VOX = []
@@ -919,29 +1026,50 @@ begin
 		push!(CORR_NRMSES, nrmses)
 	end
 end
+  ╠═╡ =#
 
 # ╔═╡ 8cbbe4e5-3745-4d42-9534-dcf6bdb28f33
+# ╠═╡ disabled = true
+#=╠═╡
 n_nperv_quant = reduce(hcat, [quantile(vec(N_NEURONPERVOX[i]), [0,0.25,0.5,0.75,1]) for i in 1:length(N_NEURONPERVOX)]);
+  ╠═╡ =#
 
 # ╔═╡ 6cc3a353-acef-4564-8cab-2c7589cfea1a
+# ╠═╡ disabled = true
+#=╠═╡
 quant_corr_nrmse = hcat([quantile(triangle_part(a), [0.005, 0.25, 0.5, 0.75, 0.995]) for a in CORR_NRMSES]...);
+  ╠═╡ =#
 
 # ╔═╡ 400cf119-b1c7-4b02-a3db-8eb437f53811
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	ref_vox = 20.;
 	ref_vox_ind = findall(VOXSIZE .== ref_vox)[1]
 end;
+  ╠═╡ =#
 
 # ╔═╡ 26887565-2982-4b01-9bc2-5b5d9412027d
+# ╠═╡ disabled = true
+#=╠═╡
 mean(N_NEURONPERVOX[ref_vox_ind]), std(N_NEURONPERVOX[ref_vox_ind])
+  ╠═╡ =#
 
 # ╔═╡ 60aabdd5-4be7-4fd9-8878-03614a6fcffd
+# ╠═╡ disabled = true
+#=╠═╡
 N_VOX[ref_vox_ind]
+  ╠═╡ =#
 
 # ╔═╡ 50bae469-a625-401a-ae5d-e4708baf89f7
+# ╠═╡ disabled = true
+#=╠═╡
 vox_color = cool[VOXSIZE ./ maximum(VOXSIZE)]
+  ╠═╡ =#
 
 # ╔═╡ c4725180-a139-4da6-9da2-e18025b4519a
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	fig_S_vox_size = Figure(size=(53, 49).*(3.5,3).*(4/3/0.35))
 
@@ -966,16 +1094,60 @@ begin
 			halign = :right)
 	end
 end
+  ╠═╡ =#
 
 # ╔═╡ 02f11ee2-bb9e-4c6a-8320-1b8c0ca81bdf
 md"""
 ### 2.1.A. N of voxels
 """
 
+# ╔═╡ 8926908c-7541-402b-bf01-14329a8e9b85
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	ax_a_S_vox_size = Axis(
+		g_a_S_vox_size[1,1],
+		xlabel="Voxel Size (μm)", 
+		ylabel="Number of Voxels",
+	)
+	lines!(ax_a_S_vox_size, VOXSIZE, N_VOX, color=vox_color)
+	axis_intercepts_full!(
+		ax_a_S_vox_size, 
+		ref_vox, N_VOX[ref_vox_ind], 
+		color=(:grey, 0.5), linestyle=:dash,
+	)
+end
+  ╠═╡ =#
+
 # ╔═╡ 3ed88439-0007-4472-a946-db2586fdc60c
 md"""
 ### 2.1.B. N of neurons
 """
+
+# ╔═╡ 406b65ee-8f1f-4dcc-8068-fc66773ef81d
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	ax_b_S_vox_size = Axis(
+		g_b_S_vox_size[:,:],
+		xlabel="Voxel Size (μm)", 
+		ylabel="Concerved neurons",
+	)
+	for i in 1:length(FRAC_NEURON_CONCERVED[1])
+		lines!(ax_b_S_vox_size, 
+			VOXSIZE, 
+			[a[i] for a in FRAC_NEURON_CONCERVED], 
+			color=vox_color,
+		)
+	end
+	axis_intercepts_full!(
+		ax_b_S_vox_size, 
+		ref_vox, mean(FRAC_NEURON_CONCERVED[ref_vox_ind]), 
+		color=(:grey, 0.5), linestyle=:dash,
+	)
+	ylims!(ax_b_S_vox_size, 0, 1)
+end
+  ╠═╡ =#
 
 # ╔═╡ 7bb8d15f-3673-46de-871f-2bf4fec13d40
 md"""
@@ -983,6 +1155,8 @@ md"""
 """
 
 # ╔═╡ f09ce00c-e17f-4ae9-aea5-7de07f2417cf
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	ax_c_S_vox_size = Axis(
 		g_c_S_vox_size[1,1],
@@ -1007,11 +1181,59 @@ begin
 	end
 	xlims!(ax_c_S_vox_size, 0, 300)
 end
+  ╠═╡ =#
 
 # ╔═╡ aec0dcf8-4b43-4727-8a96-a89bed1696b9
 md"""
 ### 2.1.D. neuron per voxel distribs
 """
+
+# ╔═╡ de31e32e-9402-4987-aa07-9d6f93b33470
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	ax_d_S_vox_size = Axis(
+		g_d_S_vox_size[1,1], 
+		yscale=log10,
+		xlabel="Voxel Size (μm)",
+		ylabel="Neurons per voxel"
+	)
+	
+	band!(ax_d_S_vox_size, 
+		Float64.(VOXSIZE), 
+		n_nperv_quant[1,:], n_nperv_quant[5,:], 
+		color=vox_color,
+		# alpha=0.3,
+		rasterize=10
+	)
+	band!(ax_d_S_vox_size, 
+		Float64.(VOXSIZE), 
+		n_nperv_quant[2,:], n_nperv_quant[4,:], 
+		color=vox_color,
+		# alpha=0.3,
+		rasterize=10
+	)
+
+	for (i,s) in enumerate([:dot, :dash, :solid, :dash, :dot])
+		lines!(ax_d_S_vox_size, 
+			Float64.(VOXSIZE), 
+			n_nperv_quant[i,:],
+			# color=:black,
+			color=vox_color,
+			linestyle=s,
+		)
+	end
+
+	axis_intercepts_full!(
+		ax_d_S_vox_size, 
+		ref_vox, n_nperv_quant[3,ref_vox_ind], 
+		color=(:grey, 0.5), linestyle=:dash,
+	)
+	
+	
+	ylims!(ax_d_S_vox_size, 1, 10^2.6)
+end
+  ╠═╡ =#
 
 # ╔═╡ 011ddb46-1c3f-4b70-8b80-9a1a4d9742e8
 
@@ -1022,14 +1244,25 @@ md"""
 """
 
 # ╔═╡ 723ebadb-627e-4f2f-84e5-0dbb9bc115a2
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	vox_path = voxelizations[3]
 	vox = VoxelGrid(vox_path)
 	corr1 = cor(vox.voxel_activities[1])
 	corr2 = cor(vox.voxel_activities[2])
 end;
+  ╠═╡ =#
+
+# ╔═╡ d8514df1-f200-411e-b4dc-259395debb5f
+# ╠═╡ disabled = true
+#=╠═╡
+using BrainRBMjulia:corrplotter!
+  ╠═╡ =#
 
 # ╔═╡ 69c8a3b5-0aeb-4c31-bb9a-a7b6cef38c08
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	ax_e_S_vox_size = Axis(
 		g_e_S_vox_size[1,1], 
@@ -1050,8 +1283,11 @@ begin
 	Colorbar(g_e_S_vox_size[1,2], h_corr_S_vox_size, label="Correlation , ρₘₙ", height=Relative(0.9))
 	colgap!(g_e_S_vox_size, 0)
 end
+  ╠═╡ =#
 
 # ╔═╡ 961f299d-6c41-4dcd-b7af-07f919525b28
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	ax_f_S_vox_size = Axis(
 		g_f_S_vox_size[1,1], 
@@ -1065,6 +1301,7 @@ begin
 	Colorbar(g_f_S_vox_size[1,2], colormap=h_id_S_vox_size.colormap.val, colorrange=h_id_S_vox_size.colorrange, scale=h_id_S_vox_size.scale, label="Density", height=Relative(0.9))
 	colgap!(g_f_S_vox_size, 0)
 end
+  ╠═╡ =#
 
 # ╔═╡ d03b97ea-e509-410b-8ea5-1ab0a312ef84
 
@@ -1073,6 +1310,53 @@ end
 md"""
 ### 2.1.G. nRMSE
 """
+
+# ╔═╡ 92ee9fbe-4418-43fd-946f-072efc7fd982
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	ax_g_S_vox_size = Axis(
+		g_g_S_vox_size[1,1], 
+		# yscale=log10,
+		xlabel="Voxel Size (μm)",
+		ylabel="nRMSE ρₘₙ"
+	)
+	
+	band!(ax_g_S_vox_size, 
+		Float64.(VOXSIZE), 
+		quant_corr_nrmse[1,:], quant_corr_nrmse[5,:], 
+		color=vox_color,
+		# alpha=0.3,
+		rasterize=10
+	)
+	band!(ax_g_S_vox_size, 
+		Float64.(VOXSIZE), 
+		quant_corr_nrmse[2,:], quant_corr_nrmse[4,:], 
+		color=vox_color,
+		# alpha=0.3,
+		rasterize=10
+	)
+
+	for (i,s) in enumerate([:dot, :dash, :solid, :dash, :dot])
+		lines!(ax_g_S_vox_size, 
+			Float64.(VOXSIZE), 
+			quant_corr_nrmse[i,:],
+			# color=:black,
+			color=vox_color,
+			linestyle=s,
+		)
+	end
+
+	axis_intercepts_full!(
+		ax_g_S_vox_size, 
+		ref_vox, quant_corr_nrmse[3,ref_vox_ind], 
+		color=(:grey, 0.5), linestyle=:dash,
+	)
+	
+	
+	ylims!(ax_g_S_vox_size, 0, 1)
+end
+  ╠═╡ =#
 
 # ╔═╡ 6b9d78ef-7140-4806-a622-1795c1139550
 
@@ -1083,15 +1367,23 @@ md"""
 """
 
 # ╔═╡ 9827331c-48f0-4ff3-9b21-0b963644a064
+# ╠═╡ disabled = true
+#=╠═╡
 all_axes_S_vox_size = [ax for ax in fig_S_vox_size.content if typeof(ax)==Axis];
+  ╠═╡ =#
 
 # ╔═╡ b3658702-1de7-41c2-9a50-01bde846ac21
+# ╠═╡ disabled = true
+#=╠═╡
 for ax in all_axes_S_vox_size
 	ax.alignmode = Mixed(left=0)
 end
+  ╠═╡ =#
 
 # ╔═╡ 382183a0-d066-4b24-b7c5-dbf5bd09dd2b
+#=╠═╡
 fig_S_vox_size
+  ╠═╡ =#
 
 # ╔═╡ 9680752c-17f9-491a-9459-034c0a43c573
 # ╠═╡ disabled = true
@@ -1109,6 +1401,8 @@ md"""
 """
 
 # ╔═╡ 1565bcf6-7f53-41c8-9add-19b44fc40a20
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	fig_S_crossval = Figure(size=(53, 49).*(7,2).*(4/3/0.35))
 	
@@ -1130,8 +1424,61 @@ begin
 	        halign = :right)
 	end
 end
+  ╠═╡ =#
+
+# ╔═╡ 68319e97-3304-4ff1-a60d-e0a07c4d2d28
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	cmap_max = nRMSEs_L4(
+		crossval_eval_loader(20.0, Ms[1], λ21s[1])[1], 
+		max=true
+	)
+	scale = 3
+end
+  ╠═╡ =#
+
+# ╔═╡ 5a18f979-3698-4101-a172-17762542dc48
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	# fig_test = Figure(size=dfsize().*2)
+	ax_20λM_S_crossval = Axis(
+		g_a_S_crossval[1,1],
+		xlabel="λ₂₁", xticks=((1:length(λ21s)).*scale, string.(λ21s)),
+		ylabel="M", yticks=((1:length(Ms)).*scale, string.(Ms)),
+		aspect=DataAspect(),
+	)
+	
+	for (i,λ) in enumerate(λ21s)
+		for (j,m) in enumerate(Ms)
+			# evals = vcat([crossval_eval_loader(v, m, λ) for v in Vs]...)
+			evals = crossval_eval_loader(20., m, λ)
+			evals = [a for a in evals if all(isfinite.(values(a)))]
+			if (i==length(λ21s)) & (j==length(Ms))
+				ax_fontsize = 8
+			else
+				ax_fontsize = 0
+			end
+			norms = nRMSEs_L4(evals)
+			inds = sortperm(norms, rev=true)
+			multipolarnrmseplotter!(ax_20λM_S_crossval, 
+				evals[inds], 
+				norms[inds], 
+				cmap_max=cmap_max,
+				origin=[i,j].*scale, 
+				ax_fontsize=ax_fontsize,
+				# cmap=reverse(CONV.CMAP_GOODNESS),
+			)
+		end
+	end
+	# fig_test
+end
+  ╠═╡ =#
 
 # ╔═╡ 538f7212-d9ba-4b63-a3b5-956d143f3f82
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	tries = LOAD.load_voxRBMs("Repeats", "vRBMr_multivoxelized_6fish_20.0vox_M*_l2l1*_rep")
 	# 	glob(
@@ -1141,11 +1488,67 @@ begin
 	tries_params = unique([( parse(Int,split(split(split(t,"vox")[end],"M")[end], "_")[1]), parse(Float64, split(split(split(t,"vox")[end],"l2l1")[end], "_")[1]) ) for t in tries])
 	tries_sorted = [tries[contains.(tries, "M$(t[1])") .& contains.(tries, "l2l1$(t[2])")] for t in tries_params]
 end
+  ╠═╡ =#
+
+# ╔═╡ ea793074-e896-4feb-80a7-2f52ac2c74de
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	# fig =  Figure()
+	ax_multi_tries_S = Axis(
+		g_b_S_crossval[1,1], 
+		aspect=DataAspect(),
+		yticks = (
+			(1:length(tries_params)).*scale,
+			["M=$(t[1]),λ₂₁=$(t[2])" for t in tries_params]
+		),
+		yticklabelrotation=π/4, yticklabelalign=(:right, :bottom),
+		bottomspinevisible=false, leftspinevisible=false,
+		xticksvisible=false, xticklabelsvisible=false, yticksvisible=false,
+	)
+
+	for i in 1:length(tries_sorted)
+		evals = load_brainRBM_eval(tries_sorted[i], ignore="<v>")
+		evals = [a for a in evals if all(isfinite.(values(a)))]
+		if i==1
+			ax_fontsize = 8
+		else
+			ax_fontsize = 0
+		end
+		norms = nRMSEs_L4(evals)
+		inds = sortperm(norms, rev=true)
+		multipolarnrmseplotter!(ax_multi_tries_S, 
+			evals[inds], 
+			norms[inds], 
+			cmap_max=cmap_max,
+			origin=[0,i].*scale, 
+			ax_fontsize=ax_fontsize,
+			# cmap=reverse(CONV.CMAP_GOODNESS),
+		)
+	end
+	
+	# fig
+end
+  ╠═╡ =#
+
+# ╔═╡ d0f4b5ce-2910-41d5-b053-e4695d2849a9
+# ╠═╡ disabled = true
+#=╠═╡
+Colorbar(
+	g_abCB_S_crossval[1,1], 
+	colormap=CONV.CMAP_GOODNESS, 
+	colorrange=(0, cmap_max),
+	label="L4 norm of statistics' nRMSE",
+	height=Relative(0.7),
+)
+  ╠═╡ =#
 
 # ╔═╡ 1e46fa45-1d1b-4bda-a290-bfe38b56ff36
 
 
 # ╔═╡ 5cb568a6-8124-4685-96a6-661935349790
+# ╠═╡ disabled = true
+#=╠═╡
 function gaussian_density(μ::Real,
 	σ::Real,
 	xmin::Real,
@@ -1162,8 +1565,11 @@ function gaussian_density(μ::Real,
 	
 	return xs, f
 end
+  ╠═╡ =#
 
 # ╔═╡ e3a97867-38f2-42d9-8582-5a77c2521737
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	# fig = Figure()
 	ax_vdistrib_S = Axis(
@@ -1186,11 +1592,14 @@ begin
 	
 	# fig
 end
+  ╠═╡ =#
 
 # ╔═╡ 2bc1fe15-8456-4684-b9d4-eb048a337239
 
 
 # ╔═╡ 3113beef-1a37-451d-8c85-f8e0f30fc78b
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	vCOV = [cov(vact') for vact in ACTS];
 	vCOV_tr = []
@@ -1216,8 +1625,11 @@ begin
 		end
 	end
 end
+  ╠═╡ =#
 
 # ╔═╡ 46c1cd03-c30c-46aa-b716-165a757dc09c
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	# fig_o = Figure()
 	
@@ -1270,17 +1682,24 @@ begin
 	)
 	# fig_o
 end
+  ╠═╡ =#
 
 # ╔═╡ 5088865e-a2cc-43ec-bbaf-c9fdaaf80f84
 
 
 # ╔═╡ 84256c48-9afe-4fb6-8c32-10c13b4a99cc
+# ╠═╡ disabled = true
+#=╠═╡
 all_axes_Scrossval = [ax for ax in fig_S_crossval.content if typeof(ax)==Axis];
+  ╠═╡ =#
 
 # ╔═╡ 1a25cdb0-398a-43bf-94fc-05e1bf292a25
+# ╠═╡ disabled = true
+#=╠═╡
 for ax in all_axes_Scrossval
 	ax.alignmode = Mixed(left=0)
 end
+  ╠═╡ =#
 
 # ╔═╡ 82441764-acd6-45f4-9606-4a0b87c8463c
 # ╠═╡ disabled = true
@@ -1290,7 +1709,9 @@ save(@figpath("SUPP_voxelcrossval"), fig_S_crossval)
   ╠═╡ =#
 
 # ╔═╡ 83b229c9-8a5f-4153-9dc2-68e84322ad90
+#=╠═╡
 fig_S_crossval
+  ╠═╡ =#
 
 # ╔═╡ 1e3e54a8-fba6-4252-99ce-2745ed704d5f
 
@@ -1304,6 +1725,8 @@ md"""
 """
 
 # ╔═╡ a0dfe8f8-5f8b-4b23-8e60-6e0af2a73e22
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	t_fish_labs = vcat([zeros(Int,size(ACTS[i],2)).+i for i in 1:length(FISH)]...)
 	indv_moments = MomentsAggregate[]
@@ -1315,11 +1738,17 @@ begin
 	end
 	indv_moments_nrmse = [nRMSE_from_moments(m) for m in indv_moments];
 end;
+  ╠═╡ =#
 
 # ╔═╡ e34a4c5a-d073-46f9-aa51-03755355f641
+# ╠═╡ disabled = true
+#=╠═╡
 stats = ["<vv> - <v><v>", "<vh>", "<h>", "<hh> - <h><h>"];
+  ╠═╡ =#
 
 # ╔═╡ 923aae15-4077-4cd0-b01e-88c54bb385a4
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	fig_S_stats_all_fish = Figure(size=(53, 49).*(length(stats)/1.,length(FISH)/1.5).*(4/3/0.35))
 
@@ -1388,6 +1817,7 @@ begin
 	
 	fig_S_stats_all_fish
 end
+  ╠═╡ =#
 
 # ╔═╡ baa32e6a-1794-4816-841c-778860309b00
 # ╠═╡ disabled = true
@@ -1432,131 +1862,6 @@ function axis_intercepts_full!(ax::Makie.Axis, x::Real, y::Real; kwargs...)
 	return h, v
 end
 
-# ╔═╡ 8926908c-7541-402b-bf01-14329a8e9b85
-begin
-	ax_a_S_vox_size = Axis(
-		g_a_S_vox_size[1,1],
-		xlabel="Voxel Size (μm)", 
-		ylabel="Number of Voxels",
-	)
-	lines!(ax_a_S_vox_size, VOXSIZE, N_VOX, color=vox_color)
-	axis_intercepts_full!(
-		ax_a_S_vox_size, 
-		ref_vox, N_VOX[ref_vox_ind], 
-		color=(:grey, 0.5), linestyle=:dash,
-	)
-end
-
-# ╔═╡ 406b65ee-8f1f-4dcc-8068-fc66773ef81d
-begin
-	ax_b_S_vox_size = Axis(
-		g_b_S_vox_size[:,:],
-		xlabel="Voxel Size (μm)", 
-		ylabel="Concerved neurons",
-	)
-	for i in 1:length(FRAC_NEURON_CONCERVED[1])
-		lines!(ax_b_S_vox_size, 
-			VOXSIZE, 
-			[a[i] for a in FRAC_NEURON_CONCERVED], 
-			color=vox_color,
-		)
-	end
-	axis_intercepts_full!(
-		ax_b_S_vox_size, 
-		ref_vox, mean(FRAC_NEURON_CONCERVED[ref_vox_ind]), 
-		color=(:grey, 0.5), linestyle=:dash,
-	)
-	ylims!(ax_b_S_vox_size, 0, 1)
-end
-
-# ╔═╡ de31e32e-9402-4987-aa07-9d6f93b33470
-begin
-	ax_d_S_vox_size = Axis(
-		g_d_S_vox_size[1,1], 
-		yscale=log10,
-		xlabel="Voxel Size (μm)",
-		ylabel="Neurons per voxel"
-	)
-	
-	band!(ax_d_S_vox_size, 
-		Float64.(VOXSIZE), 
-		n_nperv_quant[1,:], n_nperv_quant[5,:], 
-		color=vox_color,
-		# alpha=0.3,
-		rasterize=10
-	)
-	band!(ax_d_S_vox_size, 
-		Float64.(VOXSIZE), 
-		n_nperv_quant[2,:], n_nperv_quant[4,:], 
-		color=vox_color,
-		# alpha=0.3,
-		rasterize=10
-	)
-
-	for (i,s) in enumerate([:dot, :dash, :solid, :dash, :dot])
-		lines!(ax_d_S_vox_size, 
-			Float64.(VOXSIZE), 
-			n_nperv_quant[i,:],
-			# color=:black,
-			color=vox_color,
-			linestyle=s,
-		)
-	end
-
-	axis_intercepts_full!(
-		ax_d_S_vox_size, 
-		ref_vox, n_nperv_quant[3,ref_vox_ind], 
-		color=(:grey, 0.5), linestyle=:dash,
-	)
-	
-	
-	ylims!(ax_d_S_vox_size, 1, 10^2.6)
-end
-
-# ╔═╡ 92ee9fbe-4418-43fd-946f-072efc7fd982
-begin
-	ax_g_S_vox_size = Axis(
-		g_g_S_vox_size[1,1], 
-		# yscale=log10,
-		xlabel="Voxel Size (μm)",
-		ylabel="nRMSE ρₘₙ"
-	)
-	
-	band!(ax_g_S_vox_size, 
-		Float64.(VOXSIZE), 
-		quant_corr_nrmse[1,:], quant_corr_nrmse[5,:], 
-		color=vox_color,
-		# alpha=0.3,
-		rasterize=10
-	)
-	band!(ax_g_S_vox_size, 
-		Float64.(VOXSIZE), 
-		quant_corr_nrmse[2,:], quant_corr_nrmse[4,:], 
-		color=vox_color,
-		# alpha=0.3,
-		rasterize=10
-	)
-
-	for (i,s) in enumerate([:dot, :dash, :solid, :dash, :dot])
-		lines!(ax_g_S_vox_size, 
-			Float64.(VOXSIZE), 
-			quant_corr_nrmse[i,:],
-			# color=:black,
-			color=vox_color,
-			linestyle=s,
-		)
-	end
-
-	axis_intercepts_full!(
-		ax_g_S_vox_size, 
-		ref_vox, quant_corr_nrmse[3,ref_vox_ind], 
-		color=(:grey, 0.5), linestyle=:dash,
-	)
-	
-	
-	ylims!(ax_g_S_vox_size, 0, 1)
-end
-
 # ╔═╡ 9bd3fcc4-d2f7-4f4d-ad0f-a8b957aad43b
 md"""
 ## 3.1. Couplings
@@ -1598,97 +1903,6 @@ begin
 	Ms = [10, 20, 40, 60, 80]
 	Vs = [10., 20., 30., 40., 50.]
 	N_rep = 5
-end
-
-# ╔═╡ 68319e97-3304-4ff1-a60d-e0a07c4d2d28
-begin
-	cmap_max = nRMSEs_L4(
-		crossval_eval_loader(20.0, Ms[1], λ21s[1])[1], 
-		max=true
-	)
-	scale = 3
-end
-
-# ╔═╡ ea793074-e896-4feb-80a7-2f52ac2c74de
-begin
-	# fig =  Figure()
-	ax_multi_tries_S = Axis(
-		g_b_S_crossval[1,1], 
-		aspect=DataAspect(),
-		yticks = (
-			(1:length(tries_params)).*scale,
-			["M=$(t[1]),λ₂₁=$(t[2])" for t in tries_params]
-		),
-		yticklabelrotation=π/4, yticklabelalign=(:right, :bottom),
-		bottomspinevisible=false, leftspinevisible=false,
-		xticksvisible=false, xticklabelsvisible=false, yticksvisible=false,
-	)
-
-	for i in 1:length(tries_sorted)
-		evals = load_brainRBM_eval(tries_sorted[i], ignore="<v>")
-		evals = [a for a in evals if all(isfinite.(values(a)))]
-		if i==1
-			ax_fontsize = 8
-		else
-			ax_fontsize = 0
-		end
-		norms = nRMSEs_L4(evals)
-		inds = sortperm(norms, rev=true)
-		multipolarnrmseplotter!(ax_multi_tries_S, 
-			evals[inds], 
-			norms[inds], 
-			cmap_max=cmap_max,
-			origin=[0,i].*scale, 
-			ax_fontsize=ax_fontsize,
-			# cmap=reverse(CONV.CMAP_GOODNESS),
-		)
-	end
-	
-	# fig
-end
-
-# ╔═╡ d0f4b5ce-2910-41d5-b053-e4695d2849a9
-Colorbar(
-	g_abCB_S_crossval[1,1], 
-	colormap=CONV.CMAP_GOODNESS, 
-	colorrange=(0, cmap_max),
-	label="L4 norm of statistics' nRMSE",
-	height=Relative(0.7),
-)
-
-# ╔═╡ 5a18f979-3698-4101-a172-17762542dc48
-begin
-	# fig_test = Figure(size=dfsize().*2)
-	ax_20λM_S_crossval = Axis(
-		g_a_S_crossval[1,1],
-		xlabel="λ₂₁", xticks=((1:length(λ21s)).*scale, string.(λ21s)),
-		ylabel="M", yticks=((1:length(Ms)).*scale, string.(Ms)),
-		aspect=DataAspect(),
-	)
-	
-	for (i,λ) in enumerate(λ21s)
-		for (j,m) in enumerate(Ms)
-			# evals = vcat([crossval_eval_loader(v, m, λ) for v in Vs]...)
-			evals = crossval_eval_loader(20., m, λ)
-			evals = [a for a in evals if all(isfinite.(values(a)))]
-			if (i==length(λ21s)) & (j==length(Ms))
-				ax_fontsize = 8
-			else
-				ax_fontsize = 0
-			end
-			norms = nRMSEs_L4(evals)
-			inds = sortperm(norms, rev=true)
-			multipolarnrmseplotter!(ax_20λM_S_crossval, 
-				evals[inds], 
-				norms[inds], 
-				cmap_max=cmap_max,
-				origin=[i,j].*scale, 
-				ax_fontsize=ax_fontsize,
-				# cmap=reverse(CONV.CMAP_GOODNESS),
-			)
-		end
-	end
-	# fig_test
 end
 
 # ╔═╡ b5513ce1-223c-45d9-ba62-62a26ed61d24
@@ -1811,6 +2025,11 @@ end
 # ╠═afa72f3b-1d55-4a59-ae3e-6184eeeb1448
 # ╠═3dc4df0a-d7bf-4695-85fc-5e7f7e3a3687
 # ╟─43e4f988-2e3d-4f8e-921b-3d122d2c474d
+# ╟─5b0577a0-359c-45f6-a793-066d0bc1c323
+# ╠═24200602-8232-4817-b519-445291ccc6ca
+# ╠═8853942b-1f01-4f6f-b130-7f387284bde4
+# ╠═54041ffa-eb8c-4076-b5c7-42d71cb7ce75
+# ╟─9f591d3f-b1f2-4cb5-b138-1effb964b53c
 # ╠═3bb9562b-2009-4174-baf3-5dc24422dd24
 # ╠═5c5f9c1e-1817-4089-b186-b55a0c0d3870
 # ╠═f554e469-3fd9-4ecb-a1b7-4b0a386e403b
@@ -1819,6 +2038,7 @@ end
 # ╟─e932f290-1da7-4b6c-b10d-6ad7259ff2aa
 # ╟─77aaaf76-9992-4b74-a638-3ff9e35c7687
 # ╠═32b884b6-9d77-4010-8908-a65618231567
+# ╠═e70dc31d-01e6-4145-af13-96b026d96ffd
 # ╠═499428c3-8f0f-4ec4-9df5-011d352bfd3a
 # ╟─f11d7726-1bbd-4c15-8664-2ec2c1ac10f2
 # ╠═3749dd59-5ac9-4fe1-b8a8-e5af92c6c7af
