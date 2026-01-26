@@ -47,6 +47,12 @@ using Statistics
 # ╔═╡ b3c0d22b-f925-4d42-9a1f-893ecee98099
 using Clustering
 
+# ╔═╡ d8514df1-f200-411e-b4dc-259395debb5f
+# ╠═╡ disabled = true
+#=╠═╡
+using BrainRBMjulia:corrplotter!
+  ╠═╡ =#
+
 # ╔═╡ ecf7149d-9a42-47f9-9f87-b41c80e6b0cc
 begin
 	using LinearAlgebra
@@ -699,7 +705,7 @@ begin
 	datas = Dict(f=>load_data(LOAD.load_dataVOX(f, vox_size)) for f in FISH)
 	dropA = Array{Float32}(undef, length(FISH), length(FISH), 40*(40-1)÷2)
 	for (i,df) in enumerate(FISH)
-		rbm_path = LOAD.load_voxRBM("", "multivoxelized_6fish_droped$(df)")
+		rbm_path = LOAD.load_voxRBM("Dropped", "multivoxelized_6fish_droped$(df)")
 		rbm, _,_,_,_,_ = load_brainRBM(rbm_path)
 		for (j,f) in enumerate(FISH)
 			h = translate(rbm, datas[f].spikes)
@@ -856,7 +862,7 @@ FES = [free_energy(mrbm, act) for act in ACTS];
 begin
 	FES_dropped = [
 		free_energy(
-			load_brainRBM(LOAD.load_voxRBM("", "multivoxelized_6fish_droped$(df)"))[1],
+			load_brainRBM(LOAD.load_voxRBM("Dropped", "multivoxelized_6fish_droped$(df)"))[1],
 			datas[df].spikes
 		) for df in FISH
 	]
@@ -1101,53 +1107,10 @@ md"""
 ### 2.1.A. N of voxels
 """
 
-# ╔═╡ 8926908c-7541-402b-bf01-14329a8e9b85
-# ╠═╡ disabled = true
-#=╠═╡
-begin
-	ax_a_S_vox_size = Axis(
-		g_a_S_vox_size[1,1],
-		xlabel="Voxel Size (μm)", 
-		ylabel="Number of Voxels",
-	)
-	lines!(ax_a_S_vox_size, VOXSIZE, N_VOX, color=vox_color)
-	axis_intercepts_full!(
-		ax_a_S_vox_size, 
-		ref_vox, N_VOX[ref_vox_ind], 
-		color=(:grey, 0.5), linestyle=:dash,
-	)
-end
-  ╠═╡ =#
-
 # ╔═╡ 3ed88439-0007-4472-a946-db2586fdc60c
 md"""
 ### 2.1.B. N of neurons
 """
-
-# ╔═╡ 406b65ee-8f1f-4dcc-8068-fc66773ef81d
-# ╠═╡ disabled = true
-#=╠═╡
-begin
-	ax_b_S_vox_size = Axis(
-		g_b_S_vox_size[:,:],
-		xlabel="Voxel Size (μm)", 
-		ylabel="Concerved neurons",
-	)
-	for i in 1:length(FRAC_NEURON_CONCERVED[1])
-		lines!(ax_b_S_vox_size, 
-			VOXSIZE, 
-			[a[i] for a in FRAC_NEURON_CONCERVED], 
-			color=vox_color,
-		)
-	end
-	axis_intercepts_full!(
-		ax_b_S_vox_size, 
-		ref_vox, mean(FRAC_NEURON_CONCERVED[ref_vox_ind]), 
-		color=(:grey, 0.5), linestyle=:dash,
-	)
-	ylims!(ax_b_S_vox_size, 0, 1)
-end
-  ╠═╡ =#
 
 # ╔═╡ 7bb8d15f-3673-46de-871f-2bf4fec13d40
 md"""
@@ -1188,53 +1151,6 @@ md"""
 ### 2.1.D. neuron per voxel distribs
 """
 
-# ╔═╡ de31e32e-9402-4987-aa07-9d6f93b33470
-# ╠═╡ disabled = true
-#=╠═╡
-begin
-	ax_d_S_vox_size = Axis(
-		g_d_S_vox_size[1,1], 
-		yscale=log10,
-		xlabel="Voxel Size (μm)",
-		ylabel="Neurons per voxel"
-	)
-	
-	band!(ax_d_S_vox_size, 
-		Float64.(VOXSIZE), 
-		n_nperv_quant[1,:], n_nperv_quant[5,:], 
-		color=vox_color,
-		# alpha=0.3,
-		rasterize=10
-	)
-	band!(ax_d_S_vox_size, 
-		Float64.(VOXSIZE), 
-		n_nperv_quant[2,:], n_nperv_quant[4,:], 
-		color=vox_color,
-		# alpha=0.3,
-		rasterize=10
-	)
-
-	for (i,s) in enumerate([:dot, :dash, :solid, :dash, :dot])
-		lines!(ax_d_S_vox_size, 
-			Float64.(VOXSIZE), 
-			n_nperv_quant[i,:],
-			# color=:black,
-			color=vox_color,
-			linestyle=s,
-		)
-	end
-
-	axis_intercepts_full!(
-		ax_d_S_vox_size, 
-		ref_vox, n_nperv_quant[3,ref_vox_ind], 
-		color=(:grey, 0.5), linestyle=:dash,
-	)
-	
-	
-	ylims!(ax_d_S_vox_size, 1, 10^2.6)
-end
-  ╠═╡ =#
-
 # ╔═╡ 011ddb46-1c3f-4b70-8b80-9a1a4d9742e8
 
 
@@ -1252,12 +1168,6 @@ begin
 	corr1 = cor(vox.voxel_activities[1])
 	corr2 = cor(vox.voxel_activities[2])
 end;
-  ╠═╡ =#
-
-# ╔═╡ d8514df1-f200-411e-b4dc-259395debb5f
-# ╠═╡ disabled = true
-#=╠═╡
-using BrainRBMjulia:corrplotter!
   ╠═╡ =#
 
 # ╔═╡ 69c8a3b5-0aeb-4c31-bb9a-a7b6cef38c08
@@ -1310,53 +1220,6 @@ end
 md"""
 ### 2.1.G. nRMSE
 """
-
-# ╔═╡ 92ee9fbe-4418-43fd-946f-072efc7fd982
-# ╠═╡ disabled = true
-#=╠═╡
-begin
-	ax_g_S_vox_size = Axis(
-		g_g_S_vox_size[1,1], 
-		# yscale=log10,
-		xlabel="Voxel Size (μm)",
-		ylabel="nRMSE ρₘₙ"
-	)
-	
-	band!(ax_g_S_vox_size, 
-		Float64.(VOXSIZE), 
-		quant_corr_nrmse[1,:], quant_corr_nrmse[5,:], 
-		color=vox_color,
-		# alpha=0.3,
-		rasterize=10
-	)
-	band!(ax_g_S_vox_size, 
-		Float64.(VOXSIZE), 
-		quant_corr_nrmse[2,:], quant_corr_nrmse[4,:], 
-		color=vox_color,
-		# alpha=0.3,
-		rasterize=10
-	)
-
-	for (i,s) in enumerate([:dot, :dash, :solid, :dash, :dot])
-		lines!(ax_g_S_vox_size, 
-			Float64.(VOXSIZE), 
-			quant_corr_nrmse[i,:],
-			# color=:black,
-			color=vox_color,
-			linestyle=s,
-		)
-	end
-
-	axis_intercepts_full!(
-		ax_g_S_vox_size, 
-		ref_vox, quant_corr_nrmse[3,ref_vox_ind], 
-		color=(:grey, 0.5), linestyle=:dash,
-	)
-	
-	
-	ylims!(ax_g_S_vox_size, 0, 1)
-end
-  ╠═╡ =#
 
 # ╔═╡ 6b9d78ef-7140-4806-a622-1795c1139550
 
@@ -1426,56 +1289,6 @@ begin
 end
   ╠═╡ =#
 
-# ╔═╡ 68319e97-3304-4ff1-a60d-e0a07c4d2d28
-# ╠═╡ disabled = true
-#=╠═╡
-begin
-	cmap_max = nRMSEs_L4(
-		crossval_eval_loader(20.0, Ms[1], λ21s[1])[1], 
-		max=true
-	)
-	scale = 3
-end
-  ╠═╡ =#
-
-# ╔═╡ 5a18f979-3698-4101-a172-17762542dc48
-# ╠═╡ disabled = true
-#=╠═╡
-begin
-	# fig_test = Figure(size=dfsize().*2)
-	ax_20λM_S_crossval = Axis(
-		g_a_S_crossval[1,1],
-		xlabel="λ₂₁", xticks=((1:length(λ21s)).*scale, string.(λ21s)),
-		ylabel="M", yticks=((1:length(Ms)).*scale, string.(Ms)),
-		aspect=DataAspect(),
-	)
-	
-	for (i,λ) in enumerate(λ21s)
-		for (j,m) in enumerate(Ms)
-			# evals = vcat([crossval_eval_loader(v, m, λ) for v in Vs]...)
-			evals = crossval_eval_loader(20., m, λ)
-			evals = [a for a in evals if all(isfinite.(values(a)))]
-			if (i==length(λ21s)) & (j==length(Ms))
-				ax_fontsize = 8
-			else
-				ax_fontsize = 0
-			end
-			norms = nRMSEs_L4(evals)
-			inds = sortperm(norms, rev=true)
-			multipolarnrmseplotter!(ax_20λM_S_crossval, 
-				evals[inds], 
-				norms[inds], 
-				cmap_max=cmap_max,
-				origin=[i,j].*scale, 
-				ax_fontsize=ax_fontsize,
-				# cmap=reverse(CONV.CMAP_GOODNESS),
-			)
-		end
-	end
-	# fig_test
-end
-  ╠═╡ =#
-
 # ╔═╡ 538f7212-d9ba-4b63-a3b5-956d143f3f82
 # ╠═╡ disabled = true
 #=╠═╡
@@ -1488,59 +1301,6 @@ begin
 	tries_params = unique([( parse(Int,split(split(split(t,"vox")[end],"M")[end], "_")[1]), parse(Float64, split(split(split(t,"vox")[end],"l2l1")[end], "_")[1]) ) for t in tries])
 	tries_sorted = [tries[contains.(tries, "M$(t[1])") .& contains.(tries, "l2l1$(t[2])")] for t in tries_params]
 end
-  ╠═╡ =#
-
-# ╔═╡ ea793074-e896-4feb-80a7-2f52ac2c74de
-# ╠═╡ disabled = true
-#=╠═╡
-begin
-	# fig =  Figure()
-	ax_multi_tries_S = Axis(
-		g_b_S_crossval[1,1], 
-		aspect=DataAspect(),
-		yticks = (
-			(1:length(tries_params)).*scale,
-			["M=$(t[1]),λ₂₁=$(t[2])" for t in tries_params]
-		),
-		yticklabelrotation=π/4, yticklabelalign=(:right, :bottom),
-		bottomspinevisible=false, leftspinevisible=false,
-		xticksvisible=false, xticklabelsvisible=false, yticksvisible=false,
-	)
-
-	for i in 1:length(tries_sorted)
-		evals = load_brainRBM_eval(tries_sorted[i], ignore="<v>")
-		evals = [a for a in evals if all(isfinite.(values(a)))]
-		if i==1
-			ax_fontsize = 8
-		else
-			ax_fontsize = 0
-		end
-		norms = nRMSEs_L4(evals)
-		inds = sortperm(norms, rev=true)
-		multipolarnrmseplotter!(ax_multi_tries_S, 
-			evals[inds], 
-			norms[inds], 
-			cmap_max=cmap_max,
-			origin=[0,i].*scale, 
-			ax_fontsize=ax_fontsize,
-			# cmap=reverse(CONV.CMAP_GOODNESS),
-		)
-	end
-	
-	# fig
-end
-  ╠═╡ =#
-
-# ╔═╡ d0f4b5ce-2910-41d5-b053-e4695d2849a9
-# ╠═╡ disabled = true
-#=╠═╡
-Colorbar(
-	g_abCB_S_crossval[1,1], 
-	colormap=CONV.CMAP_GOODNESS, 
-	colorrange=(0, cmap_max),
-	label="L4 norm of statistics' nRMSE",
-	height=Relative(0.7),
-)
   ╠═╡ =#
 
 # ╔═╡ 1e46fa45-1d1b-4bda-a290-bfe38b56ff36
@@ -1862,6 +1622,143 @@ function axis_intercepts_full!(ax::Makie.Axis, x::Real, y::Real; kwargs...)
 	return h, v
 end
 
+# ╔═╡ 8926908c-7541-402b-bf01-14329a8e9b85
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	ax_a_S_vox_size = Axis(
+		g_a_S_vox_size[1,1],
+		xlabel="Voxel Size (μm)", 
+		ylabel="Number of Voxels",
+	)
+	lines!(ax_a_S_vox_size, VOXSIZE, N_VOX, color=vox_color)
+	axis_intercepts_full!(
+		ax_a_S_vox_size, 
+		ref_vox, N_VOX[ref_vox_ind], 
+		color=(:grey, 0.5), linestyle=:dash,
+	)
+end
+  ╠═╡ =#
+
+# ╔═╡ 406b65ee-8f1f-4dcc-8068-fc66773ef81d
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	ax_b_S_vox_size = Axis(
+		g_b_S_vox_size[:,:],
+		xlabel="Voxel Size (μm)", 
+		ylabel="Concerved neurons",
+	)
+	for i in 1:length(FRAC_NEURON_CONCERVED[1])
+		lines!(ax_b_S_vox_size, 
+			VOXSIZE, 
+			[a[i] for a in FRAC_NEURON_CONCERVED], 
+			color=vox_color,
+		)
+	end
+	axis_intercepts_full!(
+		ax_b_S_vox_size, 
+		ref_vox, mean(FRAC_NEURON_CONCERVED[ref_vox_ind]), 
+		color=(:grey, 0.5), linestyle=:dash,
+	)
+	ylims!(ax_b_S_vox_size, 0, 1)
+end
+  ╠═╡ =#
+
+# ╔═╡ de31e32e-9402-4987-aa07-9d6f93b33470
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	ax_d_S_vox_size = Axis(
+		g_d_S_vox_size[1,1], 
+		yscale=log10,
+		xlabel="Voxel Size (μm)",
+		ylabel="Neurons per voxel"
+	)
+	
+	band!(ax_d_S_vox_size, 
+		Float64.(VOXSIZE), 
+		n_nperv_quant[1,:], n_nperv_quant[5,:], 
+		color=vox_color,
+		# alpha=0.3,
+		rasterize=10
+	)
+	band!(ax_d_S_vox_size, 
+		Float64.(VOXSIZE), 
+		n_nperv_quant[2,:], n_nperv_quant[4,:], 
+		color=vox_color,
+		# alpha=0.3,
+		rasterize=10
+	)
+
+	for (i,s) in enumerate([:dot, :dash, :solid, :dash, :dot])
+		lines!(ax_d_S_vox_size, 
+			Float64.(VOXSIZE), 
+			n_nperv_quant[i,:],
+			# color=:black,
+			color=vox_color,
+			linestyle=s,
+		)
+	end
+
+	axis_intercepts_full!(
+		ax_d_S_vox_size, 
+		ref_vox, n_nperv_quant[3,ref_vox_ind], 
+		color=(:grey, 0.5), linestyle=:dash,
+	)
+	
+	
+	ylims!(ax_d_S_vox_size, 1, 10^2.6)
+end
+  ╠═╡ =#
+
+# ╔═╡ 92ee9fbe-4418-43fd-946f-072efc7fd982
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	ax_g_S_vox_size = Axis(
+		g_g_S_vox_size[1,1], 
+		# yscale=log10,
+		xlabel="Voxel Size (μm)",
+		ylabel="nRMSE ρₘₙ"
+	)
+	
+	band!(ax_g_S_vox_size, 
+		Float64.(VOXSIZE), 
+		quant_corr_nrmse[1,:], quant_corr_nrmse[5,:], 
+		color=vox_color,
+		# alpha=0.3,
+		rasterize=10
+	)
+	band!(ax_g_S_vox_size, 
+		Float64.(VOXSIZE), 
+		quant_corr_nrmse[2,:], quant_corr_nrmse[4,:], 
+		color=vox_color,
+		# alpha=0.3,
+		rasterize=10
+	)
+
+	for (i,s) in enumerate([:dot, :dash, :solid, :dash, :dot])
+		lines!(ax_g_S_vox_size, 
+			Float64.(VOXSIZE), 
+			quant_corr_nrmse[i,:],
+			# color=:black,
+			color=vox_color,
+			linestyle=s,
+		)
+	end
+
+	axis_intercepts_full!(
+		ax_g_S_vox_size, 
+		ref_vox, quant_corr_nrmse[3,ref_vox_ind], 
+		color=(:grey, 0.5), linestyle=:dash,
+	)
+	
+	
+	ylims!(ax_g_S_vox_size, 0, 1)
+end
+  ╠═╡ =#
+
 # ╔═╡ 9bd3fcc4-d2f7-4f4d-ad0f-a8b957aad43b
 md"""
 ## 3.1. Couplings
@@ -1904,6 +1801,109 @@ begin
 	Vs = [10., 20., 30., 40., 50.]
 	N_rep = 5
 end
+
+# ╔═╡ 68319e97-3304-4ff1-a60d-e0a07c4d2d28
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	cmap_max = nRMSEs_L4(
+		crossval_eval_loader(20.0, Ms[1], λ21s[1])[1], 
+		max=true
+	)
+	scale = 3
+end
+  ╠═╡ =#
+
+# ╔═╡ ea793074-e896-4feb-80a7-2f52ac2c74de
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	# fig =  Figure()
+	ax_multi_tries_S = Axis(
+		g_b_S_crossval[1,1], 
+		aspect=DataAspect(),
+		yticks = (
+			(1:length(tries_params)).*scale,
+			["M=$(t[1]),λ₂₁=$(t[2])" for t in tries_params]
+		),
+		yticklabelrotation=π/4, yticklabelalign=(:right, :bottom),
+		bottomspinevisible=false, leftspinevisible=false,
+		xticksvisible=false, xticklabelsvisible=false, yticksvisible=false,
+	)
+
+	for i in 1:length(tries_sorted)
+		evals = load_brainRBM_eval(tries_sorted[i], ignore="<v>")
+		evals = [a for a in evals if all(isfinite.(values(a)))]
+		if i==1
+			ax_fontsize = 8
+		else
+			ax_fontsize = 0
+		end
+		norms = nRMSEs_L4(evals)
+		inds = sortperm(norms, rev=true)
+		multipolarnrmseplotter!(ax_multi_tries_S, 
+			evals[inds], 
+			norms[inds], 
+			cmap_max=cmap_max,
+			origin=[0,i].*scale, 
+			ax_fontsize=ax_fontsize,
+			# cmap=reverse(CONV.CMAP_GOODNESS),
+		)
+	end
+	
+	# fig
+end
+  ╠═╡ =#
+
+# ╔═╡ d0f4b5ce-2910-41d5-b053-e4695d2849a9
+# ╠═╡ disabled = true
+#=╠═╡
+Colorbar(
+	g_abCB_S_crossval[1,1], 
+	colormap=CONV.CMAP_GOODNESS, 
+	colorrange=(0, cmap_max),
+	label="L4 norm of statistics' nRMSE",
+	height=Relative(0.7),
+)
+  ╠═╡ =#
+
+# ╔═╡ 5a18f979-3698-4101-a172-17762542dc48
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	# fig_test = Figure(size=dfsize().*2)
+	ax_20λM_S_crossval = Axis(
+		g_a_S_crossval[1,1],
+		xlabel="λ₂₁", xticks=((1:length(λ21s)).*scale, string.(λ21s)),
+		ylabel="M", yticks=((1:length(Ms)).*scale, string.(Ms)),
+		aspect=DataAspect(),
+	)
+	
+	for (i,λ) in enumerate(λ21s)
+		for (j,m) in enumerate(Ms)
+			# evals = vcat([crossval_eval_loader(v, m, λ) for v in Vs]...)
+			evals = crossval_eval_loader(20., m, λ)
+			evals = [a for a in evals if all(isfinite.(values(a)))]
+			if (i==length(λ21s)) & (j==length(Ms))
+				ax_fontsize = 8
+			else
+				ax_fontsize = 0
+			end
+			norms = nRMSEs_L4(evals)
+			inds = sortperm(norms, rev=true)
+			multipolarnrmseplotter!(ax_20λM_S_crossval, 
+				evals[inds], 
+				norms[inds], 
+				cmap_max=cmap_max,
+				origin=[i,j].*scale, 
+				ax_fontsize=ax_fontsize,
+				# cmap=reverse(CONV.CMAP_GOODNESS),
+			)
+		end
+	end
+	# fig_test
+end
+  ╠═╡ =#
 
 # ╔═╡ b5513ce1-223c-45d9-ba62-62a26ed61d24
 # ╠═╡ disabled = true

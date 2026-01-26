@@ -16,7 +16,7 @@ url = "https://zenodo.org/records/17121390/files/"
 register(DataDep(
   "Data_WBSC",
   "Whole-brain single-neuron datasets hosted on Zenodo.",
-  url*"WBSC.zip",
+  url * "WBSC.zip",
   (md5, "d55b787daa491a0f7da44e0c234e16e4");
   post_fetch_method=unpack
 ))
@@ -25,8 +25,8 @@ register(DataDep(
   "Data_Vox",
   "Whole-brain voxelized datasets hosted on Zenodo.",
   [
-    url*"Voxelized.zip",
-    url*"Voxelgrids.zip",
+    url * "Voxelized.zip",
+    url * "Voxelgrids.zip",
   ],
   [
     (md5, "76315cdfa1f0e6d5f91b1333eddec048"),
@@ -39,19 +39,22 @@ register(DataDep(
   "RBMs_Vox",
   "Whole-brain voxelized RBMs hosted on Zenodo.",
   [
-    url*"vRBMr_multivoxelized_6fish_20.0vox_M40_l2l10.1.h5",
-    url*"CrossValidation_VOX.zip",
-    url*"Repeats_VOX.zip",
+    url * "vRBMr_multivoxelized_6fish_20.0vox_M40_l2l10.1.h5",
+    url * "CrossValidation_VOX.zip",
+    url * "Repeats_VOX.zip",
+    # url * "Dropped.zip",
   ],
   [
     (md5, "5d21dd6cad889b139e02fcef490b86e3"),
     (md5, "05a155da8a122537f35c622ff9dc2ef3"),
     (md5, "643cab094e17564f28b0acf09b2ae73b"),
+    # (md5, "3dd44440087cd50d6d8fb97ed87800a6"),
   ];
   post_fetch_method=[
     identity,
     unpack,
     unpack,
+    # unpack,
   ]
 ))
 
@@ -59,10 +62,10 @@ register(DataDep(
   "RBMs_WBSC",
   "Whole-brain single-cell RBMs hosted on Zenodo.",
   [
-    url*"bRBMs.zip",
-    url*"biRBMs.zip",
-    url*"biRBMs_before_training.zip",
-    url*"Repeats_WBSC.zip",
+    url * "bRBMs.zip",
+    url * "biRBMs.zip",
+    url * "biRBMs_before_training.zip",
+    url * "Repeats_WBSC.zip",
   ],
   [
     (md5, "47a9687d41a5a0e001a746e08e7a9c25"),
@@ -77,11 +80,11 @@ register(DataDep(
   "Misc",
   "Miscellaneous precomputed files hosted on Zenodo.",
   [
-    url*"WeightDist_6fish_WBSC_M100_l10.02_l2l10_sigma4_epsilon1.0e-5.h5",
-    url*"DeepFakeFreeEnergy_6fish_WBSC_M100_l10.02_l2l10.h5",
-    url*"DeepFakeTransferMethods_6fish_WBSC_M100_l10.02_l2l10.h5",
-    url*"DeepFakeStats_6fish_WBSC_M100_l10.02_l2l10.h5",
-    url*"DeepFakeActivityDistance_6fish_WBSC_M100_l10.02_l2l10.h5",
+    url * "WeightDist_6fish_WBSC_M100_l10.02_l2l10_sigma4_epsilon1.0e-5.h5",
+    url * "DeepFakeFreeEnergy_6fish_WBSC_M100_l10.02_l2l10.h5",
+    url * "DeepFakeTransferMethods_6fish_WBSC_M100_l10.02_l2l10.h5",
+    url * "DeepFakeStats_6fish_WBSC_M100_l10.02_l2l10.h5",
+    url * "DeepFakeActivityDistance_6fish_WBSC_M100_l10.02_l2l10.h5",
   ],
   [
     (md5, "5e942a1c19861fd44cc072675d866176"),
