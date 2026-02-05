@@ -100,8 +100,11 @@ md"""
 # ╔═╡ cb704bc8-014e-453c-8769-ea68dc409d64
 md"selected fish : $(@bind fish Select(FISH))"
 
+# ╔═╡ db46da30-5fba-42fb-ac5d-1d9eee6325a8
+base_mod = "*_WBSC_M100_l10.005_l2l10";
+
 # ╔═╡ 7243c09d-8bca-4be2-9ada-cc7e659513b3
-rbm_path = LOAD.load_wbscRBM("bRBMs", fish)
+rbm_path = LOAD.load_wbscRBM("bRBMs", "bRBM_*$(fish)*$(base_mod[2:end])*")
 
 # ╔═╡ a7a2a5d7-ed14-4065-a7aa-68833d8d21cb
 rbm,_,_,_,_,_ = load_brainRBM(rbm_path);
@@ -121,8 +124,6 @@ md"""
 """
 
 # ╔═╡ 40880245-abc4-4f69-8503-0b6f49956261
-# ╠═╡ disabled = true
-#=╠═╡
 maps = Maps(
 	coords,
 	bigBox,
@@ -132,7 +133,6 @@ maps = Maps(
 	σ=4.,
 	verbose=false,
 );
-  ╠═╡ =#
 
 # ╔═╡ 59146427-6f1a-4f6a-af3f-82c10a249858
 md"""
@@ -140,12 +140,9 @@ md"""
 """
 
 # ╔═╡ eb379d35-c061-4f3d-aa20-62ccdaa5a5e2
-#=╠═╡
 reconstr_weights = interpolation(maps, coords, verbose=false);
-  ╠═╡ =#
 
 # ╔═╡ 33cb8a06-cfae-4130-a8b2-5228d632b4fa
-#=╠═╡
 begin
 	begin
 		fig_reconsWeights = Figure()
@@ -159,7 +156,6 @@ begin
 		fig_reconsWeights
 	end
 end
-  ╠═╡ =#
 
 # ╔═╡ f7214e4f-bb66-4c56-b679-244d1dec0ab6
 md"""
@@ -167,9 +163,7 @@ md"""
 """
 
 # ╔═╡ d0373414-6b9b-40d3-a41a-437090a6ee86
-#=╠═╡
 dump_maps(rbm_path, maps, "Weight Maps")
-  ╠═╡ =#
 
 # ╔═╡ 979284d7-49af-4335-b5db-c87e4080238d
 
@@ -191,6 +185,7 @@ dump_maps(rbm_path, maps, "Weight Maps")
 # ╟─e2481a0e-1e9d-4c35-b024-eef702331ed7
 # ╟─87e25586-cf45-4d24-8805-472d9b2594f3
 # ╟─cb704bc8-014e-453c-8769-ea68dc409d64
+# ╠═db46da30-5fba-42fb-ac5d-1d9eee6325a8
 # ╠═7243c09d-8bca-4be2-9ada-cc7e659513b3
 # ╠═a7a2a5d7-ed14-4065-a7aa-68833d8d21cb
 # ╠═a29073a7-8fb5-4db6-8e6c-531c5d08eb84

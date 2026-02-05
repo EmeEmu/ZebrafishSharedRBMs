@@ -56,7 +56,10 @@ FISH = [
 ];
 
 # ╔═╡ 3eb2db58-5112-4c2b-9a23-dadb02ed0b9b
-
+begin
+	M = 100
+	λ = 0.08
+end
 
 # ╔═╡ 8f59e4ab-b030-4055-8dae-e21a5142f38b
 md"""
@@ -94,9 +97,9 @@ md"""
 
 # ╔═╡ 44699638-977a-4794-9461-85a4cf2f68ac
 if repeats
-	rbm_paths = LOAD.load_wbscRBMs("Repeats", "bRBM_$(dataset.name)*_rep*")
+	rbm_paths = LOAD.load_wbscRBMs("Repeats", "bRBM_$(dataset.name)*M$(M)*l1$(λ)*_rep*")
 else
-	rbm_paths = LOAD.load_wbscRBM("bRBMs", "bRBM_$(dataset.name)*")
+	rbm_paths = LOAD.load_wbscRBM("bRBMs", "bRBM_$(dataset.name)*M$(M)*l1$(λ)*")
 end
 
 # ╔═╡ b657a23f-7f77-4b9a-b831-c53b6e4bd803
