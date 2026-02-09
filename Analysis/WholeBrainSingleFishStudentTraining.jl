@@ -27,6 +27,17 @@ begin
 	using PlutoUI
 end
 
+# ╔═╡ d2ffdbee-4cc2-46b5-ba01-af31cf960e26
+begin
+
+	# loading modules
+	using BrainRBMjulia
+	using BrainRBMjulia: StandardizedRBM, Binary
+	using BrainRBMjulia: @trace, Adam, MVHistory, ProgressLevel, @logmsg, uuid4, adjust!
+	using BiTrainedRBMs: bipcd!
+	using HDF5
+end
+
 # ╔═╡ 9408efa2-47a7-4134-9844-7d82f4b0515e
 TableOfContents()
 
@@ -49,7 +60,7 @@ FISH = [
 ];
 
 # ╔═╡ 4a25ab9e-d07a-45b4-9828-37e406c81494
-base_mod = "*_WBSC_M100_l10.02_l2l10";
+base_mod = "*_WBSC_M100_l10.08_l2l10";
 
 # ╔═╡ 5e49710d-da07-48e8-8acb-169a26680d85
 md"selected teacher : $(@bind teacher Select(FISH))"
@@ -149,9 +160,6 @@ if load_student
 	student_dataset = load_data(student_data_path);
 end
 
-# ╔═╡ 134b1219-d5dd-46bc-9da5-77185a03a098
-teacher_dataset
-
 # ╔═╡ 9edd8d62-ecf8-46be-92d3-cd39ecb2da7d
 student_dataset
 
@@ -222,23 +230,19 @@ md"""
 """
 
 # ╔═╡ 718568a1-5803-4208-a475-e267a22432ac
-Ssplit_simple = split_set(student_dataset.spikes);
-
-# ╔═╡ e6d1e867-faa0-4126-8ef0-afbbe8a14e74
-Sgen_before = gen_data(
-	gpu(Srbm_ut), 
-	nsamples=1500,
-	nthermal=500,
-	nstep=100,
-	init="prior",
-	verbose=true,
-);
-
-# ╔═╡ 46ffef63-3aee-46d3-a539-a47a0efd13fe
-Smoments_before = compute_all_moments(Srbm_ut, Ssplit_simple, Sgen_before);
-
-# ╔═╡ 95dc3e1c-e20d-4839-bb33-dab91e060a57
-Snrmse_before = nRMSE_from_moments(Smoments_before)
+begin
+	Ssplit_simple = split_set(student_dataset.spikes);
+	Sgen_before = gen_data(
+		gpu(Srbm_ut), 
+		nsamples=1500,
+		nthermal=500,
+		nstep=100,
+		init="prior",
+		verbose=true,
+	);
+	Smoments_before = compute_all_moments(Srbm_ut, Ssplit_simple, Sgen_before);
+	Snrmse_before = nRMSE_from_moments(Smoments_before)
+end
 
 # ╔═╡ fd429c52-735e-40bc-b1ea-5703a9fe3dea
 dump_brainRBM(
@@ -259,200 +263,6 @@ dump_brainRBM(
 md"""
 # 4. Training Student
 """
-
-# ╔═╡ 255617d3-efaf-4932-adb4-1c4c5678f24d
-#=╠═╡
-function training_wrapper_birbm(
-  rbm::StandardizedRBM,
-  data_v::AbstractArray,
-  data_h::AbstractArray,
-  λ::Real; 
-        
-  iters::Int=20000, # 50000
-  batchsize::Int=256, # 256
-  steps::Int=50, # 50
-  lr_start::Number=5.0f-4, # 1f-4
-  lr_stop::Number=1.0f-5, # 1f-5
-  decay_from::Number=0.25, # 0.25
-  l2l1::Number=0.001, # 0.001
-  l1::Number=0, # 0
-  ϵv::Number=1.0f-1, # 1f-1
-  ϵh::Number=0.0f0, # 0f0
-  damping::Number=1.0f-1,
-  record_ps::Bool=true, # true
-  verbose::Bool=true
-)
-
-  decay_g = (lr_stop / lr_start)^(1 / (iters * (1 - decay_from)))
-  history = MVHistory()
-  if verbose
-    pbar_id = uuid4()
-	  pbar_name = "Training BrainRBM"
-    @logmsg ProgressLevel pbar_name progress=nothing _id=pbar_id
-  end
-
-  function callback(; rbm, optim, state, iter, vm, hm, vd, hd)
-    # learning rate section
-    lr = state.w.rule.eta
-    if iter > decay_from * iters
-      adjust!(state, Float32(lr * decay_g))
-    end
-    @trace history iter lr
-
-
-    # progress bar section
-    if verbose
-      @logmsg ProgressLevel pbar_name progress=iter/iters _id=pbar_id
-    end
-
-
-    # pseudolikelihood section
-
-    if iszero(iter % 200) & record_ps
-      lpl = mean(log_pseudolikelihood(rbm, data_v))
-      @trace history iter lpl
-    end
-
-
-  end
-
-  optim = Adam(lr_start, (9.0f-1, 999.0f-3), 1.0f-6) # (0f0, 999f-3), 1f-6
-  n = size(rbm.visible,1)
-  m = size(rbm.hidden,1)
-  vm = sample_from_inputs(rbm.visible, gpu(zeros(n, batchsize)))
-  hm = sample_from_inputs(rbm.hidden, gpu(zeros(m, batchsize)))
-  state, ps = bipcd!(
-    rbm, data_v, data_h, λ;
-    optim,
-    steps=steps,
-    batchsize,
-    iters=iters,
-    vm,hm,
-    l2l1_weights=l2l1,
-    l1_weights=l1,
-    ϵv=ϵv, # 1f-1
-    ϵh=ϵh, # 0f0
-    damping=damping,
-    callback
-  )
-
-  return history, Dict([
-    ("λ", λ),
-    ("iters", iters),
-    ("batchsize", batchsize),
-    ("steps", steps),
-    ("lr_start", lr_start),
-    ("lr_stop", lr_stop),
-    ("decay_from", decay_from),
-    ("l2l1", l2l1),
-    ("l1", l1),
-    ("ϵv", ϵv),
-    ("ϵh", ϵh),
-    ("damping", damping),
-  ])
-end
-  ╠═╡ =#
-
-# ╔═╡ 7298f06b-2009-4822-b351-cfc8f33fa7dd
-md"""
-## 4.1. Creating visible test/train
-"""
-
-# ╔═╡ db1029ba-80cd-4d0c-95a2-3299aaf5f05c
-md"Lauch datasplit? $(@bind lauch_datasplit CheckBox(default=false))"
-
-# ╔═╡ 2a2ef2d5-accf-44c8-9565-16e80324d7a8
-if lauch_datasplit
-	ssplt = SectionSplit(student_dataset.spikes, 0.7);
-	dsplit = split_set(student_dataset.spikes, ssplt, q=0.1);
-end
-
-# ╔═╡ 8aecf36c-fe99-4681-abc9-a81e8adaf0be
-
-
-# ╔═╡ 060c3292-ecf6-41d6-991e-56ac4bf3ad18
-
-
-# ╔═╡ 1e1fcd6f-3f42-440d-ba3a-b5758f76d68e
-md"""
-## 4.3. Training
-"""
-
-# ╔═╡ 75e46b25-c85b-4d69-b680-1cbdf06a74b1
-md"Lauch training? $(@bind lauch_training CheckBox(default=false))"
-
-# ╔═╡ 0e5d6c38-3651-484f-bd89-ee7a252e1feb
-if lauch_training
-	Srbm_tt = gpu(Srbm_ut);
-end
-
-# ╔═╡ f3645e46-7e35-4cd3-ad04-b2c45010ea50
-#=╠═╡
-hist, params = training_wrapper_birbm(
-    Srbm_tt,
-    gpu(dsplit.train),
-    gpu(Tsplitsamph.train),
-    0.5;
-    batchsize=Ttrain_params["batchsize"],
-    iters=20000,#Ttrain_params["iters"],
-    steps=Ttrain_params["steps"],
-    l2l1=Ttrain_params["l2l1"],
-    l1=Ttrain_params["l1"],
-    record_ps=false,
-    ϵv=Ttrain_params["ϵv"],
-    ϵh=Ttrain_params["ϵh"],
-    damping=Ttrain_params["damping"],
-)
-  ╠═╡ =#
-
-# ╔═╡ ac37b669-8c25-461a-b22e-1d31e969f853
-Sgen = gen_data(Srbm_tt, nsamples=1500, nthermal=500, nstep=100, init="prior", verbose=true);
-
-# ╔═╡ 47321f2c-6a28-41e3-88bd-fa4c889e3cfa
-Srbm = cpu(Srbm_tt);
-
-# ╔═╡ 3936dfc8-6c7d-46fa-98f7-649eb9e9bc2f
-Smoments = compute_all_moments(Srbm, dsplit, Sgen);
-
-# ╔═╡ 0a2ebb12-e58d-4950-9ad2-8a43e5d8fd0b
-Snrmses = nRMSE_from_moments(Smoments)
-
-# ╔═╡ d3d24033-93d5-4046-971e-54dea4115410
-#=╠═╡
-dump_brainRBM(
-	out_rbm_path, 
-	Srbm, params, 
-	Snrmses, 
-	dsplit, Sgen, 
-	translate(Srbm, student_dataset.spikes) ; 
-	comment="$(student) initiated and bitrained from $(teacher_rbm_path)",
-)
-  ╠═╡ =#
-
-# ╔═╡ 4729229a-0323-42af-a90b-0d1b44507b2f
-
-
-# ╔═╡ cb9b67b2-8833-4106-bcb4-efe2826d6778
-
-
-# ╔═╡ 953da13e-ab1e-418b-838b-f6911a380ac6
-
-
-# ╔═╡ d8d424e9-c173-47c8-9254-5bdc85161f2a
-
-
-# ╔═╡ d2ffdbee-4cc2-46b5-ba01-af31cf960e26
-#=╠═╡
-begin
-
-	# loading modules
-	using BrainRBMjulia
-	using BrainRBMjulia: StandardizedRBM, Binary
-	using BrainRBMjulia: @trace, Adam, MVHistory, ProgressLevel, @logmsg, uuid4, adjust!
-	using BiTrainedRBMs: bipcd!
-	using HDF5
-end
-  ╠═╡ =#
 
 # ╔═╡ cca94fb0-aa23-47fe-bb1b-349bdbd45976
 # ╠═╡ disabled = true
@@ -590,6 +400,165 @@ begin
 end
   ╠═╡ =#
 
+# ╔═╡ 255617d3-efaf-4932-adb4-1c4c5678f24d
+function training_wrapper_birbm(
+  rbm::StandardizedRBM,
+  data_v::AbstractArray,
+  data_h::AbstractArray,
+  λ::Real; 
+        
+  iters::Int=20000, # 50000
+  batchsize::Int=256, # 256
+  steps::Int=50, # 50
+  lr_start::Number=5.0f-4, # 1f-4
+  lr_stop::Number=1.0f-5, # 1f-5
+  decay_from::Number=0.25, # 0.25
+  l2l1::Number=0.001, # 0.001
+  l1::Number=0, # 0
+  ϵv::Number=1.0f-1, # 1f-1
+  ϵh::Number=0.0f0, # 0f0
+  damping::Number=1.0f-1,
+  record_ps::Bool=true, # true
+  verbose::Bool=true
+)
+
+  decay_g = (lr_stop / lr_start)^(1 / (iters * (1 - decay_from)))
+  history = MVHistory()
+  if verbose
+    pbar_id = uuid4()
+	  pbar_name = "Training BrainRBM"
+    @logmsg ProgressLevel pbar_name progress=nothing _id=pbar_id
+  end
+
+  function callback(; rbm, optim, state, iter, vm, hm, vd, hd)
+    # learning rate section
+    lr = state.w.rule.eta
+    if iter > decay_from * iters
+      adjust!(state, Float32(lr * decay_g))
+    end
+    @trace history iter lr
+
+
+    # progress bar section
+    if verbose
+      @logmsg ProgressLevel pbar_name progress=iter/iters _id=pbar_id
+    end
+
+
+    # pseudolikelihood section
+
+    if iszero(iter % 200) & record_ps
+      lpl = mean(log_pseudolikelihood(rbm, data_v))
+      @trace history iter lpl
+    end
+
+
+  end
+
+  optim = Adam(lr_start, (9.0f-1, 999.0f-3), 1.0f-6) # (0f0, 999f-3), 1f-6
+  n = size(rbm.visible,1)
+  m = size(rbm.hidden,1)
+  vm = sample_from_inputs(rbm.visible, gpu(zeros(n, batchsize)))
+  hm = sample_from_inputs(rbm.hidden, gpu(zeros(m, batchsize)))
+  state, ps = bipcd!(
+    rbm, data_v, data_h, λ;
+    optim,
+    steps=steps,
+    batchsize,
+    iters=iters,
+    vm,hm,
+    l2l1_weights=l2l1,
+    l1_weights=l1,
+    ϵv=ϵv, # 1f-1
+    ϵh=ϵh, # 0f0
+    damping=damping,
+    callback
+  )
+
+  return history, Dict([
+    ("λ", λ),
+    ("iters", iters),
+    ("batchsize", batchsize),
+    ("steps", steps),
+    ("lr_start", lr_start),
+    ("lr_stop", lr_stop),
+    ("decay_from", decay_from),
+    ("l2l1", l2l1),
+    ("l1", l1),
+    ("ϵv", ϵv),
+    ("ϵh", ϵh),
+    ("damping", damping),
+  ])
+end
+
+# ╔═╡ 7298f06b-2009-4822-b351-cfc8f33fa7dd
+md"""
+## 4.1. Creating visible test/train
+"""
+
+# ╔═╡ db1029ba-80cd-4d0c-95a2-3299aaf5f05c
+md"Lauch datasplit? $(@bind lauch_datasplit CheckBox(default=false))"
+
+# ╔═╡ 2a2ef2d5-accf-44c8-9565-16e80324d7a8
+if lauch_datasplit
+	ssplt = SectionSplit(student_dataset.spikes, 0.7);
+	dsplit = split_set(student_dataset.spikes, ssplt, q=0.1);
+end
+
+# ╔═╡ 060c3292-ecf6-41d6-991e-56ac4bf3ad18
+
+
+# ╔═╡ 1e1fcd6f-3f42-440d-ba3a-b5758f76d68e
+md"""
+## 4.3. Training
+"""
+
+# ╔═╡ 75e46b25-c85b-4d69-b680-1cbdf06a74b1
+md"Lauch training? $(@bind lauch_training CheckBox(default=false))"
+
+# ╔═╡ 0e5d6c38-3651-484f-bd89-ee7a252e1feb
+if lauch_training
+	Srbm_tt = gpu(Srbm_ut);
+	hist, params = training_wrapper_birbm(
+	    Srbm_tt,
+	    gpu(dsplit.train),
+	    gpu(Tsplitsamph.train),
+	    0.5;
+	    batchsize=Ttrain_params["batchsize"],
+	    iters=20000,#Ttrain_params["iters"],
+	    steps=Ttrain_params["steps"],
+	    l2l1=Ttrain_params["l2l1"],
+	    l1=Ttrain_params["l1"],
+	    record_ps=false,
+	    ϵv=Ttrain_params["ϵv"],
+	    ϵh=Ttrain_params["ϵh"],
+	    damping=Ttrain_params["damping"],
+	)
+	Sgen = gen_data(
+		Srbm_tt, 
+		nsamples=1500, nthermal=500, nstep=100, 
+		init="prior", 
+		verbose=true
+	);
+	Srbm = cpu(Srbm_tt);
+	Smoments = compute_all_moments(Srbm, dsplit, Sgen);
+	Snrmses = nRMSE_from_moments(Smoments)
+	
+end
+
+# ╔═╡ d3d24033-93d5-4046-971e-54dea4115410
+dump_brainRBM(
+	out_rbm_path, 
+	Srbm, params, 
+	Snrmses, 
+	dsplit, Sgen, 
+	translate(Srbm, student_dataset.spikes) ; 
+	comment="$(student) initiated and bitrained from $(teacher_rbm_path)",
+)
+
+# ╔═╡ d8d424e9-c173-47c8-9254-5bdc85161f2a
+
+
 # ╔═╡ Cell order:
 # ╠═164901da-1482-11f0-0f83-6fdbfdebcbae
 # ╠═d2ffdbee-4cc2-46b5-ba01-af31cf960e26
@@ -617,7 +586,6 @@ end
 # ╟─eec84371-bf0a-4bfd-abde-6a2ef103bd87
 # ╟─d580a6ce-768f-4f6d-9b76-4ca9ff77a861
 # ╠═cca50582-372b-4433-b9b7-43a64f21c1fb
-# ╠═134b1219-d5dd-46bc-9da5-77185a03a098
 # ╠═9edd8d62-ecf8-46be-92d3-cd39ecb2da7d
 # ╟─8bc74646-9f64-4870-b95b-efd93857fc8e
 # ╠═2e21ca58-42d4-4258-bccf-62e57bc58c28
@@ -631,9 +599,6 @@ end
 # ╠═1bb7ce92-b4df-482c-865a-ddd005c8ae76
 # ╟─a1757c3b-5d31-471b-8d42-596813e81536
 # ╠═718568a1-5803-4208-a475-e267a22432ac
-# ╠═e6d1e867-faa0-4126-8ef0-afbbe8a14e74
-# ╠═46ffef63-3aee-46d3-a539-a47a0efd13fe
-# ╠═95dc3e1c-e20d-4839-bb33-dab91e060a57
 # ╠═fd429c52-735e-40bc-b1ea-5703a9fe3dea
 # ╠═ddd54f3e-820a-496c-9794-92e1fb63aa5b
 # ╟─bb4e637b-8841-4b32-bfaa-241446319d13
@@ -642,18 +607,9 @@ end
 # ╟─7298f06b-2009-4822-b351-cfc8f33fa7dd
 # ╟─db1029ba-80cd-4d0c-95a2-3299aaf5f05c
 # ╠═2a2ef2d5-accf-44c8-9565-16e80324d7a8
-# ╠═8aecf36c-fe99-4681-abc9-a81e8adaf0be
 # ╠═060c3292-ecf6-41d6-991e-56ac4bf3ad18
 # ╟─1e1fcd6f-3f42-440d-ba3a-b5758f76d68e
 # ╟─75e46b25-c85b-4d69-b680-1cbdf06a74b1
 # ╠═0e5d6c38-3651-484f-bd89-ee7a252e1feb
-# ╠═f3645e46-7e35-4cd3-ad04-b2c45010ea50
-# ╠═ac37b669-8c25-461a-b22e-1d31e969f853
-# ╠═47321f2c-6a28-41e3-88bd-fa4c889e3cfa
-# ╠═3936dfc8-6c7d-46fa-98f7-649eb9e9bc2f
-# ╟─0a2ebb12-e58d-4950-9ad2-8a43e5d8fd0b
 # ╠═d3d24033-93d5-4046-971e-54dea4115410
-# ╠═4729229a-0323-42af-a90b-0d1b44507b2f
-# ╠═cb9b67b2-8833-4106-bcb4-efe2826d6778
-# ╠═953da13e-ab1e-418b-838b-f6911a380ac6
 # ╠═d8d424e9-c173-47c8-9254-5bdc85161f2a
