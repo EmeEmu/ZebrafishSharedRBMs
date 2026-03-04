@@ -886,6 +886,65 @@ save(@figpath("SUPP_all_rhos"), fig_all_rhos)
 # ╔═╡ 0d3bcc75-b014-41c1-8385-178005a917d3
 
 
+# ╔═╡ 8e3e0169-04d5-4dbd-87bd-9be2fd0c780f
+
+
+# ╔═╡ 0e7a7c09-8dda-4a35-a223-370fefad2058
+
+
+# ╔═╡ a231055c-553f-473e-9a4f-1302e8438ed7
+md"""
+## 2.4. Probability of translated patterns
+"""
+
+# ╔═╡ b0b08cb7-167f-40e0-8d8b-0670c23b74a4
+F_T, F_TT, F_TS
+
+# ╔═╡ f742c83e-4e1e-4f36-9606-5c1d8f6ca961
+begin
+	fig_translationprob = Figure(size=dfsize().*(1.2,1))
+	ax_translationprob = Axis(
+		fig_translationprob[1,1],
+		# xscale=log10, yscale=log10,
+		xlabel=L"F^T(\mathbf{v}^T)", ylabel=L"F^S(\mathbf{v}^{T\to S})",
+		xtickformat = xs -> ["$(round(Int, x/1.e3))" for x in xs],
+		ytickformat = ys -> ["$(round(Int, y/1.e3))" for y in ys],
+	)
+	
+	Label(fig_translationprob[1,1][1,1,Top()], halign=:left, "×10³")
+	# Label(fig_translationprob[1,1][1,1,Right()], halign=:left, "×10³")
+	xxmmin, xxmmax = quantile(F_T, [0., 1-1.e-3])
+	yymmin, yymmax = quantile(F_TS, [0., 1-1.e-4])
+	
+	h_translationprob = hexbin!(
+		ax_translationprob,
+		F_T,
+		F_TS,
+		cellsize=(400,100),
+		# bins=(
+		# 	LinRange(xxmmin, xxmmax, 100),
+		# 	LinRange(xxmmin, xxmmax, 100),
+		# ),
+		# color=(:black, 0.1),
+	)
+
+	text!(
+		(xxmmin + xxmmax)/2,
+		(yymmin + yymmax)/4,
+		text="corr = $(round(cor(F_T, F_TS); digits=2))",
+	)
+
+	xlims!((1+1)*xxmmin, (1+1.e-4)*xxmmax)
+	ylims!((1-1.e-1)*yymmin, (1+1.e-1)*yymmax)
+
+	Colorbar(fig_translationprob[1,2], h_translationprob, label="Density")
+	
+	fig_translationprob
+end
+
+# ╔═╡ b1f21a22-92bb-42e0-ad16-a75337ae566a
+save(@figpath("SUPP_translationprob"), fig_translationprob)
+
 # ╔═╡ e3cc5a3c-6eac-4f81-9790-f8453ab4ed6e
 md"""
 # 3. Tools
@@ -1727,6 +1786,12 @@ end
 # ╠═3416de92-6c8e-423e-95d9-adf8d2be8b0d
 # ╠═fcfe9c88-993d-4bda-9111-a2617c295970
 # ╠═0d3bcc75-b014-41c1-8385-178005a917d3
+# ╠═8e3e0169-04d5-4dbd-87bd-9be2fd0c780f
+# ╠═0e7a7c09-8dda-4a35-a223-370fefad2058
+# ╟─a231055c-553f-473e-9a4f-1302e8438ed7
+# ╠═b0b08cb7-167f-40e0-8d8b-0670c23b74a4
+# ╠═f742c83e-4e1e-4f36-9606-5c1d8f6ca961
+# ╠═b1f21a22-92bb-42e0-ad16-a75337ae566a
 # ╟─e3cc5a3c-6eac-4f81-9790-f8453ab4ed6e
 # ╟─461d1707-91ca-4881-b0b1-862d30049fd5
 # ╠═4e860cbc-f97c-4696-bedf-4e0807b2f83b
