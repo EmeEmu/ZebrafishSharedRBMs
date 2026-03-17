@@ -2,7 +2,7 @@
 
 Tools and data for the analysis of whole-brain zebrafish calcium imaging using **Latent aligned Restricted Boltzmann Machines (LaRBMs)**.  
 The repository contains Julia modules, Pluto notebooks, and helper scripts used to generate the results and figures for the article : [Shared latent representation enables cross-individual
-translation of spontaneous brain activity](https://example.com).
+translation of spontaneous brain activity](https://doi.org/10.64898/2026.01.09.698719).
 
 ## Table of Contents
 
@@ -94,7 +94,7 @@ Open the desired `.jl` notebook from `Analysis/` or `Figures/`.
 
 ## Data & Model Dependencies
 
-This project uses [DataDeps.jl](https://github.com/oxinabox/DataDeps.jl) to fetch large datasets and pretrained models hosted on Zenodo [here](https://zenodo.org/records/17121390). All datasets are listed in `datadeps.jl`.  
+This project uses [DataDeps.jl](https://github.com/oxinabox/DataDeps.jl) to fetch large datasets and pretrained models hosted on Zenodo [here](https://zenodo.org/records/19066472). All datasets are listed in `datadeps.jl`.  
 All files are stored in `DataAndModels/` and downloaded automatically when first requested.  
 The paths of data, model, and pre-computation files can be obtained using the methods in `loader.jl`. For example to get the path the Whole-Brain Single-Cell binarized spikes of the fish names *Eglantine*, you can run :
 ```julia
@@ -102,7 +102,7 @@ include(joinpath(dirname(Base.current_project()), "Misc_Code", "loaders.jl"))
 load_dataWBSC("Eglantine")
 ```
 
-The total size on disk of the entire and uncompressed data dependencies is **~60GB**. Additional disk space can be needed for certain computations (see bellow).
+The total size on disk of the entire and uncompressed data dependencies is **~90GiB**. Additional disk space can be needed for certain computations (see bellow).
 
 All data and model files are [HDF5](https://en.wikipedia.org/wiki/Hierarchical_Data_Format) files (`.h5`), with embeded documentation as *attributes*. You can get the layout of a given file by running :
 ```julia

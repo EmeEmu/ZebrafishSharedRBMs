@@ -11,13 +11,13 @@ if !isdir(ENV["DATADEPS_LOAD_PATH"])
   mkdir(ENV["DATADEPS_LOAD_PATH"])
 end
 
-url = "https://zenodo.org/records/17121390/files/"
+url = "https://zenodo.org/records/19066472/files/"
 
 register(DataDep(
   "Data_WBSC",
   "Whole-brain single-neuron datasets hosted on Zenodo.",
   url * "WBSC.zip",
-  (md5, "d55b787daa491a0f7da44e0c234e16e4");
+  (md5, "4d3fa64556ca55a4d7e706d3f9037140");
   post_fetch_method=unpack
 ))
 
@@ -29,8 +29,8 @@ register(DataDep(
     url * "Voxelgrids.zip",
   ],
   [
-    (md5, "76315cdfa1f0e6d5f91b1333eddec048"),
-    (md5, "b2d2c22e22d06cd97c2b62848f14a83c"),
+    (md5, "3f1819cf983d3a89aaa96bd5b82d5328"),
+    (md5, "2a208240c9983c10d187c4a7b62465d0"),
   ];
   post_fetch_method=unpack
 ))
@@ -42,19 +42,19 @@ register(DataDep(
     url * "vRBMr_multivoxelized_6fish_20.0vox_M40_l2l10.1.h5",
     url * "CrossValidation_VOX.zip",
     url * "Repeats_VOX.zip",
-    # url * "Dropped.zip",
+    url * "Dropped.zip",
   ],
   [
     (md5, "5d21dd6cad889b139e02fcef490b86e3"),
-    (md5, "05a155da8a122537f35c622ff9dc2ef3"),
-    (md5, "643cab094e17564f28b0acf09b2ae73b"),
-    # (md5, "3dd44440087cd50d6d8fb97ed87800a6"),
+    (md5, "c924805c59ffa74a3b3c2a984eeab9e5"),
+    (md5, "2cd8c49fe6ac51ae8aa76277993fa121"),
+    (md5, "f03104e1a05002de7517d62e4e1fe315"),
   ];
   post_fetch_method=[
     identity,
     unpack,
     unpack,
-    # unpack,
+    unpack,
   ]
 ))
 
@@ -68,10 +68,10 @@ register(DataDep(
     url * "Repeats_WBSC.zip",
   ],
   [
-    (md5, "47a9687d41a5a0e001a746e08e7a9c25"),
-    (md5, "65ceb9e691a41d8e99cbcfe063ac9f0d"),
-    (md5, "3b9572000ea75e2b6467ab6c500bce34"),
-    (md5, "b2e98a47f71f27983e6358a83e1be7d6"),
+    (md5, "012594ab78442f17539ae64ba3d18a58"),
+    (md5, "b7aafbf981bc0d78bf0c80d157573cd4"),
+    (md5, "bf29aca31e95437beae268c9c6e62ac0"),
+    (md5, "abbb56c1d622cba79660becb842d9305"),
   ];
   post_fetch_method=unpack
 ))
