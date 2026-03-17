@@ -62,7 +62,7 @@ Both submodules are extensions of the julia package [RestrictedBoltzmannMachines
 └── Manifest.toml             # Full reproducible environment
 
 ```
-Data and trained RBMs are downloaded on demand from the [Zenodo repository](https://zenodo.org/records/17121390) and stored in `DataAndModels/` (created automatically).
+Data and trained RBMs are downloaded on demand from the [Zenodo repository](https://zenodo.org/records/19066472) and stored in `DataAndModels/` (created automatically).
 
 
 ## Setting Up the Julia Environment
