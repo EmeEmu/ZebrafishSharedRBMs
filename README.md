@@ -1,8 +1,7 @@
 # Zebrafish Shared RBMs - Code and Data
 
 Tools and data for the analysis of whole-brain zebrafish calcium imaging using **Latent aligned Restricted Boltzmann Machines (LaRBMs)**.  
-The repository contains Julia modules, Pluto notebooks, and helper scripts used to generate the results and figures for the article : [Shared latent representation enables cross-individual
-translation of spontaneous brain activity](https://doi.org/10.64898/2026.01.09.698719).
+The repository contains Julia modules, Pluto notebooks, and helper scripts used to generate the results and figures for the article : [Cross-individual translation of spontaneous zebrafish brain activity through a shared latent representation](https://doi.org/10.64898/2026.01.09.698719).
 
 ## Table of Contents
 
